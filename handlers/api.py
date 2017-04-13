@@ -89,7 +89,7 @@ class WebhookHandler(ShopSelectableHandler):
                 latitude = event.message.latitude
                 longitude = event.message.longitude
                 timestamp = event.timestamp
-                h = self.select_from_redis(user_id,latitude,longitude,timestamp)
+                h = self.select_from_redis(user_id,longitude,latitude,timestamp)
                 logger.info('Found'+str(h))
                 if h != None:
                     reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
@@ -153,15 +153,15 @@ class DBRefreshHandler(BaseHandler):
         for i in j:
             o = j[i]
             name = o[0]
-            longitude = o[1]
-            latitude = o[2]
+            latitude = o[1]
+            longitude = o[2]
             h = {
                 'name':name,
                 'longitude':longitude,
                 'latitude':latitude
             }
             self.application.redisdb.hmset(i,h)
-            self.application.redisdb.execute_command('GEOADD','pos',latitude,longitude,i)
+            self.application.redisdb.execute_command('GEOADD','pos',longitude,latitude,i)
 
         self.write('Imported '+str(len(j))+' spot(s)')
         self.finish()

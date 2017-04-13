@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import tornado.httpserver
-import tornado.httpclient
 import tornado.ioloop
 import tornado.web
 from tornado.options import options
@@ -21,9 +20,6 @@ class TornadoBoilerplate(tornado.web.Application):
         self.redisdb = self.create_client()
         self.redisdb.connect()
         
-        self.redis_channel_name = options.redis_subscribe_channel
-        self.subscriber = tornadoredis.pubsub.BaseSubscriber(self.redisdb)
-
         self.line_bot_api = LineBotApi(options.line_channel_access_token)
         self.line_handler = WebhookHandler(options.line_channel_secret)
         self.line_qrcode_raw_text = options.line_qrcode_raw_text

@@ -10,6 +10,7 @@ from StringIO import StringIO
 from linebot.models import TextSendMessage
 import json
 import logging
+import random
 
 logger = logging.getLogger('boilerplate.' + __name__)
 
@@ -45,28 +46,22 @@ class IndexHandler(BaseHandler):
         self.finish()
 
 
-class PointPostableHandler(BaseHandler):
-    @tornado.gen.engine
-    def put_in_redis(self,user_id,latitude,longitude,timestamp,callback=None):
-        try:
-            expires_sec = 3600
-            j = {
-                'latitude':latitude,
-                'longitude':longitude,
-                'timestamp':timestamp,
-                'user_id':user_id
-            }
-            r = yield tornado.gen.Task(self.application.redisdb.hmset,user_id,j)
-            r = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEOADD','pos',longitude,latitude,user_id)
-            r = yield tornado.gen.Task(self.application.redisdb.expire,user_id,expires_sec)
-        except Exception as e:
-            logger.error(e.message)
+class ShopSelectableHandler(BaseHandler):
+    @tornado.gen.coroutine
+    def select_from_redis(self,user_id,latitude,longitude,timestamp,callback=None):
+        keyanddists = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEORADIUS','pos',latitude,longitude,3000,'km','WITHDIST')
+        keyanddist = random.choice(keyanddists)
+
+        key = keyanddist[0]
+        dist = float(keyanddist[1])
+        h = yield tornado.gen.Task(self.application.redisdb.hgetall,key)
+        raise tornado.gen.Return(h)
             
         if callback:
             callback(False)
 
 
-class WebhookHandler(PointPostableHandler):
+class WebhookHandler(ShopSelectableHandler):
     def initialize(self):
         logger.info('Set default LINE handler')
         
@@ -89,8 +84,8 @@ class WebhookHandler(PointPostableHandler):
                 latitude = event.message.latitude
                 longitude = event.message.longitude
                 timestamp = event.timestamp
-                reply = 'Message from user '+str(user_id)+' at ('+str(latitude)+','+str(longitude)+') '+str(timestamp)
-                self.put_in_redis(user_id,latitude,longitude,timestamp)
+                h = self.select_from_redis(user_id,latitude,longitude,timestamp)
+                reply = 'How about '+h['name']
 
             self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
 
@@ -98,7 +93,7 @@ class WebhookHandler(PointPostableHandler):
             logger.error(e.message)
 
     @tornado.web.asynchronous
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def post(self):
         self.set_default_headers()
         
@@ -118,22 +113,9 @@ class WebhookHandler(PointPostableHandler):
             self.finish()
 
             
-class QrCodeHandler(BaseHandler):
-    @tornado.web.asynchronous
-    def get(self):
-        self.set_header('Content-Type','image/svg+xml')
-        img = qrcode.make(self.application.line_qrcode_raw_text.decode('UTF-8'),image_factory=qrcode.image.svg.SvgImage)
-        output = StringIO()
-        img.save(output)
-        d = output.getvalue()
-        output.close()
-        self.write(d)
-        self.finish()
-
-        
 class PlacesJsonHandler(BaseHandler):
     @tornado.web.asynchronous
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def get(self):
         keys = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEORADIUS','pos',135,35,3000,'km')
         j = {}
@@ -155,14 +137,63 @@ class PlacesJsonHandler(BaseHandler):
         self.write(json.dumps(j,separators=(',', ':')))
         self.finish()
 
-class ForcePostHandler(PointPostableHandler):
+        
+class ForcePostHandler(ShopSelectableHandler):
     @tornado.web.asynchronous
-    @tornado.gen.engine
+    @tornado.gen.coroutine
     def post(self):
         user_id = int(self.request.arguments['user_id'][0])
         latitude = float(self.request.arguments['latitude'][0])
         longitude = float(self.request.arguments['longitude'][0])
-        self.put_in_redis(user_id,latitude,longitude,0)
+        shop = yield tornado.gen.Task(self.select_from_redis,user_id,latitude,longitude,0)
 
-        self.write('OK')
+        self.write(json.dumps(shop))
         self.finish()
+
+class DBRefreshHandler(BaseHandler):
+    def get(self):
+        self.write('''<body>
+<form enctype="multipart/form-data" action="/dbrefresh" method="POST">
+<input type="file" name="filearg"/>
+<input type="submit" value="Submit"/>
+</form>
+</body>''')
+
+    @tornado.gen.coroutine
+    @tornado.web.asynchronous
+    def post(self):
+        f = self.request.files['filearg'][0]
+        j = json.loads(f['body'])
+
+        r = yield tornado.gen.Task(self.application.redisdb.flushall)
+        
+        for i in j:
+            o = j[i]
+            name = o[0]
+            longitude = o[1]
+            latitude = o[2]
+            h = {
+                'name':name,
+                'longitude':longitude,
+                'latitude:':latitude
+            }
+            r = yield tornado.gen.Task(self.application.redisdb.hmset,i,h)
+            r = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEOADD','pos',latitude,longitude,i)
+
+        self.write('Done')
+        self.finish()
+
+        
+class QrCodeHandler(BaseHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        self.set_header('Content-Type','image/svg+xml')
+        img = qrcode.make(self.application.line_qrcode_raw_text.decode('UTF-8'),image_factory=qrcode.image.svg.SvgImage)
+        output = StringIO()
+        img.save(output)
+        d = output.getvalue()
+        output.close()
+        self.write(d)
+        self.finish()
+
+        

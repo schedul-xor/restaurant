@@ -49,7 +49,11 @@ class IndexHandler(BaseHandler):
 class ShopSelectableHandler(BaseHandler):
     @tornado.gen.coroutine
     def select_from_redis(self,user_id,latitude,longitude,timestamp,callback=None):
-        keyanddists = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEORADIUS','pos',latitude,longitude,3000,'km','WITHDIST')
+        try:
+            keyanddists = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEORADIUS','pos',longitude,latitude,3000,'km','WITHDIST')
+        except Exception as e:
+            logger.error(e.message)
+            
         if len(keyanddists) > 0:
             keyanddist = random.choice(keyanddists)
 

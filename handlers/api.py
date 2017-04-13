@@ -4,10 +4,10 @@ import tornado.web
 import tornado.auth
 import tornado.escape
 from linebot.exceptions import InvalidSignatureError
+from linebot.models import TextSendMessage
 import qrcode
 import qrcode.image.svg
 from StringIO import StringIO
-from linebot.models import TextSendMessage
 import json
 import logging
 import random
@@ -91,7 +91,7 @@ class WebhookHandler(ShopSelectableHandler):
                 timestamp = event.timestamp
                 h = self.select_from_redis(user_id,latitude,longitude,timestamp)
                 if h != None:
-                    reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here?'
+                    reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? geo:'+str(h['latitude'])+','+str(h['longitude'])
                 else:
                     reply = 'No shops found'
 

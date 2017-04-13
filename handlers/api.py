@@ -47,10 +47,9 @@ class IndexHandler(BaseHandler):
 
 
 class ShopSelectableHandler(BaseHandler):
-    @tornado.gen.coroutine
     def select_from_redis(self,user_id,latitude,longitude,timestamp,callback=None):
         try:
-            keyanddists = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEORADIUS','pos',longitude,latitude,3000,'km','WITHDIST')
+            keyanddists = self.application.redisdb.execute_command('GEORADIUS','pos',longitude,latitude,3000,'km','WITHDIST')
         except Exception as e:
             logger.error(e.message)
             
@@ -59,10 +58,10 @@ class ShopSelectableHandler(BaseHandler):
 
             key = keyanddist[0]
             dist = float(keyanddist[1])
-            h = yield tornado.gen.Task(self.application.redisdb.hgetall,key)
-            raise tornado.gen.Return(h)
+            h = self.application.redisdb.hgetall(key)
+            return h
         else:
-            raise tornado.gen.Return(None)
+            return None
 
 
 class WebhookHandler(ShopSelectableHandler):
@@ -127,7 +126,7 @@ class ForcePostHandler(ShopSelectableHandler):
         user_id = int(self.request.arguments['user_id'][0])
         latitude = float(self.request.arguments['latitude'][0])
         longitude = float(self.request.arguments['longitude'][0])
-        shop = yield tornado.gen.Task(self.select_from_redis,user_id,latitude,longitude,0)
+        shop = self.select_from_redis(user_id,latitude,longitude,0)
 
         self.write(json.dumps(shop))
         self.finish()

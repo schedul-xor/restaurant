@@ -4,8 +4,7 @@ import tornado.httpserver
 import tornado.ioloop
 import tornado.web
 from tornado.options import options
-import tornadoredis
-import tornadoredis.pubsub
+import redis
 import urlparse
 
 from settings import settings
@@ -18,7 +17,6 @@ logger = logging.getLogger('boilerplate.' + __name__)
 class TornadoBoilerplate(tornado.web.Application):
     def __init__(self):
         self.redisdb = self.create_client()
-        self.redisdb.connect()
         
         self.line_bot_api = LineBotApi(options.line_channel_access_token)
         self.line_handler = WebhookHandler(options.line_channel_secret)
@@ -29,11 +27,11 @@ class TornadoBoilerplate(tornado.web.Application):
 
     def create_client(self):
         o = urlparse.urlparse(options.redis_url)
-        return tornadoredis.Client(
+        return redis.StrictRedis(
             host=o.hostname,
             port=o.port,
             password=o.password,
-            selected_db=3
+            db=3
         )
 
 def main():

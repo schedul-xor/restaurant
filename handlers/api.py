@@ -141,13 +141,12 @@ class DBRefreshHandler(BaseHandler):
 </form>
 </body>''')
 
-    @tornado.gen.coroutine
     @tornado.web.asynchronous
     def post(self):
         f = self.request.files['filearg'][0]
         j = json.loads(f['body'])
 
-        r = yield tornado.gen.Task(self.application.redisdb.flushall)
+        self.application.redisdb.flushall()
         
         for i in j:
             o = j[i]
@@ -159,8 +158,8 @@ class DBRefreshHandler(BaseHandler):
                 'longitude':longitude,
                 'latitude:':latitude
             }
-            r = yield tornado.gen.Task(self.application.redisdb.hmset,i,h)
-            r = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEOADD','pos',latitude,longitude,i)
+            self.application.redisdb.hmset(i,h)
+            self.application.redisdb.execute_command('GEOADD','pos',latitude,longitude,i)
 
         self.write('Done')
         self.finish()

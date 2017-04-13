@@ -31,7 +31,7 @@ class TornadoBoilerplate(tornado.web.Application):
             host=o.hostname,
             port=o.port,
             password=o.password,
-            db=3
+            db=0
         )
 
 def main():

@@ -161,7 +161,7 @@ class DBRefreshHandler(BaseHandler):
             self.application.redisdb.hmset(i,h)
             self.application.redisdb.execute_command('GEOADD','pos',latitude,longitude,i)
 
-        self.write('Done')
+        self.write('Imported '+str(len(j))+' spot(s)')
         self.finish()
 
         

@@ -50,15 +50,15 @@ class ShopSelectableHandler(BaseHandler):
     @tornado.gen.coroutine
     def select_from_redis(self,user_id,latitude,longitude,timestamp,callback=None):
         keyanddists = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEORADIUS','pos',latitude,longitude,3000,'km','WITHDIST')
-        keyanddist = random.choice(keyanddists)
+        if len(keyanddists) > 0:
+            keyanddist = random.choice(keyanddists)
 
-        key = keyanddist[0]
-        dist = float(keyanddist[1])
-        h = yield tornado.gen.Task(self.application.redisdb.hgetall,key)
-        raise tornado.gen.Return(h)
-            
-        if callback:
-            callback(False)
+            key = keyanddist[0]
+            dist = float(keyanddist[1])
+            h = yield tornado.gen.Task(self.application.redisdb.hgetall,key)
+            raise tornado.gen.Return(h)
+        else:
+            raise tornado.gen.Return(None)
 
 
 class WebhookHandler(ShopSelectableHandler):
@@ -85,7 +85,10 @@ class WebhookHandler(ShopSelectableHandler):
                 longitude = event.message.longitude
                 timestamp = event.timestamp
                 h = self.select_from_redis(user_id,latitude,longitude,timestamp)
-                reply = 'How about '+h['name']
+                if h != None:
+                    reply = 'How about '+h['name']
+                else:
+                    reply = 'No shops found'
 
             self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
 

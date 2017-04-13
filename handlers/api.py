@@ -92,7 +92,7 @@ class WebhookHandler(ShopSelectableHandler):
                 h = self.select_from_redis(user_id,latitude,longitude,timestamp)
                 logger.info('Found'+str(h))
                 if h != None:
-                    reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? geo:'+str(h['latitude'])+','+str(h['longitude'])
+                    reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 else:
                     reply = 'No shops found'
 

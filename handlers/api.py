@@ -112,31 +112,6 @@ class WebhookHandler(ShopSelectableHandler):
             self.write(e.message)
             self.finish()
 
-            
-class PlacesJsonHandler(BaseHandler):
-    @tornado.web.asynchronous
-    @tornado.gen.coroutine
-    def get(self):
-        keys = yield tornado.gen.Task(self.application.redisdb.execute_command,'GEORADIUS','pos',135,35,3000,'km')
-        j = {}
-        for key in keys:
-            logger.info('Found key '+key)
-            r = yield tornado.gen.Task(self.application.redisdb.exists,key)
-            if r == 0:
-                r = yield tornado.gen.Task(self.application.redisdb.zrem,'pos',key)
-            else:
-                o = yield tornado.gen.Task(self.application.redisdb.hgetall,key)
-                if o.has_key('timestamp'):
-                    for k in ['timestamp']:
-                        o[k] = int(o[k])
-                    for k in ['latitude','longitude']:
-                        o[k] = float(o[k])
-                    j[key] = o
-        
-        self.set_header('Content-Type','text/json')
-        self.write(json.dumps(j,separators=(',', ':')))
-        self.finish()
-
         
 class ForcePostHandler(ShopSelectableHandler):
     @tornado.web.asynchronous

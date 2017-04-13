@@ -129,9 +129,9 @@ class ForcePostHandler(ShopSelectableHandler):
         user_id = int(self.request.arguments['user_id'][0])
         latitude = float(self.request.arguments['latitude'][0])
         longitude = float(self.request.arguments['longitude'][0])
-        shop = self.select_from_redis(user_id,latitude,longitude,0)
+        h = self.select_from_redis(user_id,latitude,longitude,0)
 
-        self.write(json.dumps(shop))
+        self.write(json.dumps(h))
         self.finish()
 
 class DBRefreshHandler(BaseHandler):
@@ -158,7 +158,7 @@ class DBRefreshHandler(BaseHandler):
             h = {
                 'name':name,
                 'longitude':longitude,
-                'latitude:':latitude
+                'latitude':latitude
             }
             self.application.redisdb.hmset(i,h)
             self.application.redisdb.execute_command('GEOADD','pos',latitude,longitude,i)

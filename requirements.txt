@@ -1,4 +1,4 @@
 tornado
 line-bot-sdk
 qrcode
-tornado-redis
+redis

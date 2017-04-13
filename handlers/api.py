@@ -59,6 +59,8 @@ class ShopSelectableHandler(BaseHandler):
             key = keyanddist[0]
             dist = float(keyanddist[1])
             h = self.application.redisdb.hgetall(key)
+            h['key'] = key
+            h['dist'] = dist
             return h
         else:
             return None
@@ -89,7 +91,7 @@ class WebhookHandler(ShopSelectableHandler):
                 timestamp = event.timestamp
                 h = self.select_from_redis(user_id,latitude,longitude,timestamp)
                 if h != None:
-                    reply = 'How about '+h['name']
+                    reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here?'
                 else:
                     reply = 'No shops found'
 

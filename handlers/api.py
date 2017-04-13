@@ -90,6 +90,7 @@ class WebhookHandler(ShopSelectableHandler):
                 longitude = event.message.longitude
                 timestamp = event.timestamp
                 h = self.select_from_redis(user_id,latitude,longitude,timestamp)
+                logger.info('Found'+str(h))
                 if h != None:
                     reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? geo:'+str(h['latitude'])+','+str(h['longitude'])
                 else:

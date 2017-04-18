@@ -198,13 +198,11 @@ class MessengerWebhookHandler(ShopSelectableHandler):
         try:
             entry0 = data['entry'][0]
             m0 = entry0['messaging'][0]
-            logger.info('m0 '+str(m0))
             user_id = m0['sender']['id']
             message = m0['message']
             mid = message['mid']
             attachments = message['attachments']
             attachment0 = attachments[0]
-            logger.info('attachment0 '+str(attachment0))
 
             if attachment0['type'] != 'location':
                 reply = 'Type '+attachment0['type']+' is not allowed'
@@ -213,7 +211,10 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                 lat = coord['lat']
                 lon = coord['long']
                 h = self.select_from_redis(user_id,lat,lon,0)
-                reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
+                if h != None:
+                    reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
+                else:
+                    reply = 'No shops found'
 
             url = 'https://graph.facebook.com/v2.6/me/messages'
             headers = {'content-type':'application/json'}

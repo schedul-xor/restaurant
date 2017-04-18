@@ -196,7 +196,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
         data = json.loads(self.request.body)
 
         try:
-            m0 = entry[0]['messaging'][0]
+            m0 = data[0]['messaging'][0]
             user_id = m0['sender']['id']
             message = m0['message']
             mid = message['mid']

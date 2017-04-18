@@ -196,11 +196,15 @@ class MessengerWebhookHandler(ShopSelectableHandler):
         data = json.loads(self.request.body)
 
         try:
-            m0 = data['entry'][0]['messaging'][0]
+            entry0 = data['entry'][0]
+            m0 = entry0['messaging'][0]
+            logger.info('m0 '+str(m0))
             user_id = m0['sender']['id']
             message = m0['message']
             mid = message['mid']
-            attachment0 = message['attachments'][0]
+            attachments = message['attachments']
+            attachment0 = attachments[0]
+            logger.info('attachment0 '+str(attachment0))
 
             if attachment0['type'] != 'location':
                 reply = 'Type '+attachment0['type']+' is not allowed'

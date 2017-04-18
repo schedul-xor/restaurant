@@ -214,8 +214,11 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             url = 'https://graph.facebook.com/v2.6/me/messages'
             headers = {'content-type':'application/json'}
             data = {'recipient':{'id':user_id},'message':{'text':reply}}
+            datastr = json.dumps(data)
             params = {'access_token':self.application.messenger_page_access_token}
-            r = requests.post(url,params=params,data=json.dumps(data),headers=headers)
+            logger.info('Request '+url+' '+datastr+' '+json.dumps(params))
+            
+            r = requests.post(url,params=params,data=datastr,headers=headers)
             logger.info('Reply '+r.text)
         except Exception as e:
             logger.error(e.message)

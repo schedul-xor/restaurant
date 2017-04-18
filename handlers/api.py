@@ -66,7 +66,7 @@ class ShopSelectableHandler(BaseHandler):
             return None
 
 
-class WebhookHandler(ShopSelectableHandler):
+class LineWebhookHandler(ShopSelectableHandler):
     def initialize(self):
         logger.info('Set default LINE handler')
         
@@ -167,7 +167,7 @@ class DBRefreshHandler(BaseHandler):
         self.finish()
 
         
-class QrCodeHandler(BaseHandler):
+class LineQrCodeHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
         self.set_header('Content-Type','image/svg+xml')

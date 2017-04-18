@@ -194,27 +194,30 @@ class MessengerWebhookHandler(ShopSelectableHandler):
     def post(self):
         logger.info('Received data '+self.request.body)
         data = json.loads(self.request.body)
-        
-        m0 = entry[0]['messaging'][0]
-        user_id = m0['sender']['id']
-        message = m0['message']
-        mid = message['mid']
-        attachment0 = message['attachments'][0]
-        
-        if attachment0['type'] != 'location':
-            reply = 'Type '+attachment0['type']+' is not allowed'
-        else:
-            coord = attachment[0]['payload']['coordinates']
-            lat = coord['lat']
-            lon = coord['long']
-            h = self.select_from_redis(user_id,lat,lon,0)
-            reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
-            
-        url = 'https://graph.facebook.com/v2.6/me/messages'
-        headers = {'content-type':'application/json'}
-        data = {'recipient':{'id':user_id},'message':{'text':reply}}
-        params = {'access_token':self.application.messenger_page_access_token}
-        r = requests.post(url,params=params,data=json.dumps(data),headers=headers)
-        logger.info('Reply '+r.text)
 
-        self.finish()
+        try:
+            m0 = entry[0]['messaging'][0]
+            user_id = m0['sender']['id']
+            message = m0['message']
+            mid = message['mid']
+            attachment0 = message['attachments'][0]
+
+            if attachment0['type'] != 'location':
+                reply = 'Type '+attachment0['type']+' is not allowed'
+            else:
+                coord = attachment[0]['payload']['coordinates']
+                lat = coord['lat']
+                lon = coord['long']
+                h = self.select_from_redis(user_id,lat,lon,0)
+                reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
+
+            url = 'https://graph.facebook.com/v2.6/me/messages'
+            headers = {'content-type':'application/json'}
+            data = {'recipient':{'id':user_id},'message':{'text':reply}}
+            params = {'access_token':self.application.messenger_page_access_token}
+            r = requests.post(url,params=params,data=json.dumps(data),headers=headers)
+            logger.info('Reply '+r.text)
+        except Exception as e:
+            logger.error(e.message)
+        finally:
+            self.finish()

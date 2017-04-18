@@ -66,6 +66,51 @@ class ShopSelectableHandler(BaseHandler):
             return None
 
 
+class ForcePostHandler(ShopSelectableHandler):
+    @tornado.web.asynchronous
+    @tornado.gen.coroutine
+    def post(self):
+        user_id = int(self.request.arguments['user_id'][0])
+        latitude = float(self.request.arguments['latitude'][0])
+        longitude = float(self.request.arguments['longitude'][0])
+        h = self.select_from_redis(user_id,latitude,longitude,0)
+
+        self.write(json.dumps(h))
+        self.finish()
+
+class DBRefreshHandler(BaseHandler):
+    def get(self):
+        self.write('''<body>
+<form enctype="multipart/form-data" action="/dbrefresh" method="POST">
+<input type="file" name="filearg"/>
+<input type="submit" value="Submit"/>
+</form>
+</body>''')
+
+    @tornado.web.asynchronous
+    def post(self):
+        f = self.request.files['filearg'][0]
+        j = json.loads(f['body'])
+
+        self.application.redisdb.flushall()
+        
+        for i in j:
+            o = j[i]
+            name = o[0]
+            latitude = o[1]
+            longitude = o[2]
+            h = {
+                'name':name,
+                'longitude':longitude,
+                'latitude':latitude
+            }
+            self.application.redisdb.hmset(i,h)
+            self.application.redisdb.execute_command('GEOADD','pos',longitude,latitude,i)
+
+        self.write('Imported '+str(len(j))+' spot(s)')
+        self.finish()
+
+        
 class LineWebhookHandler(ShopSelectableHandler):
     def initialize(self):
         logger.info('Set default LINE handler')
@@ -122,51 +167,6 @@ class LineWebhookHandler(ShopSelectableHandler):
             self.finish()
 
         
-class ForcePostHandler(ShopSelectableHandler):
-    @tornado.web.asynchronous
-    @tornado.gen.coroutine
-    def post(self):
-        user_id = int(self.request.arguments['user_id'][0])
-        latitude = float(self.request.arguments['latitude'][0])
-        longitude = float(self.request.arguments['longitude'][0])
-        h = self.select_from_redis(user_id,latitude,longitude,0)
-
-        self.write(json.dumps(h))
-        self.finish()
-
-class DBRefreshHandler(BaseHandler):
-    def get(self):
-        self.write('''<body>
-<form enctype="multipart/form-data" action="/dbrefresh" method="POST">
-<input type="file" name="filearg"/>
-<input type="submit" value="Submit"/>
-</form>
-</body>''')
-
-    @tornado.web.asynchronous
-    def post(self):
-        f = self.request.files['filearg'][0]
-        j = json.loads(f['body'])
-
-        self.application.redisdb.flushall()
-        
-        for i in j:
-            o = j[i]
-            name = o[0]
-            latitude = o[1]
-            longitude = o[2]
-            h = {
-                'name':name,
-                'longitude':longitude,
-                'latitude':latitude
-            }
-            self.application.redisdb.hmset(i,h)
-            self.application.redisdb.execute_command('GEOADD','pos',longitude,latitude,i)
-
-        self.write('Imported '+str(len(j))+' spot(s)')
-        self.finish()
-
-        
 class LineQrCodeHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
@@ -180,3 +180,11 @@ class LineQrCodeHandler(BaseHandler):
         self.finish()
 
         
+class MessengerWebhookHandler(ShopSelectableHandler):
+    @tornado.web.asynchronous
+    def get(self):
+        if self.get_argument('hub.verify_token','') == self.application.messenger_verify_token:
+            self.write(self.get_argument('hub.challenge',''))
+        else:
+            self.write('Wrong')
+        self.finish()

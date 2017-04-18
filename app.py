@@ -21,6 +21,8 @@ class TornadoBoilerplate(tornado.web.Application):
         self.line_bot_api = LineBotApi(options.line_channel_access_token)
         self.line_handler = WebhookHandler(options.line_channel_secret)
         self.line_qrcode_raw_text = options.line_qrcode_raw_text
+
+        self.messenger_verify_token = options.messenger_verify_token
             
         # Initialize application
         tornado.web.Application.__init__(self, url_patterns, **settings)

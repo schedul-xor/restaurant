@@ -39,9 +39,9 @@ class IndexHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
         self.set_default_headers()
-        self.write('''<img src="/qrcode"></img>
+        self.write('''<h2>Line</h2><img src="/line/qrcode"></img>
 <ul>
-<li><a href="/qrcode">/qrcode</a></li>
+<li><a href="/line/qrcode">/line/qrcode</a></li>
 </ul>''')
         self.finish()
 

@@ -193,3 +193,4 @@ class MessengerWebhookHandler(ShopSelectableHandler):
     def post(self):
         data = json.loads(self.request.body)
         logger.info('Received data '+self.request.body)
+        self.finish()

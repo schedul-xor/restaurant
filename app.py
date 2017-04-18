@@ -23,6 +23,7 @@ class TornadoBoilerplate(tornado.web.Application):
         self.line_qrcode_raw_text = options.line_qrcode_raw_text
 
         self.messenger_verify_token = options.messenger_verify_token
+        self.messenger_page_access_token = options.messenger_page_access_token
             
         # Initialize application
         tornado.web.Application.__init__(self, url_patterns, **settings)

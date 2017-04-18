@@ -188,3 +188,8 @@ class MessengerWebhookHandler(ShopSelectableHandler):
         else:
             self.write('Wrong')
         self.finish()
+
+    @tornado.web.asynchronous
+    def post(self):
+        data = json.loads(self.request.body)
+        logger.info('Received data '+self.request.body)

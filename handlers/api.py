@@ -205,7 +205,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             if attachment0['type'] != 'location':
                 reply = 'Type '+attachment0['type']+' is not allowed'
             else:
-                coord = attachment[0]['payload']['coordinates']
+                coord = attachment0['payload']['coordinates']
                 lat = coord['lat']
                 lon = coord['long']
                 h = self.select_from_redis(user_id,lat,lon,0)

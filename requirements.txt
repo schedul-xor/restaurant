@@ -2,3 +2,4 @@ tornado
 line-bot-sdk
 qrcode
 redis
+requests

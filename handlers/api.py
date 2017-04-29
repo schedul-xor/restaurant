@@ -228,12 +228,18 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             attachments = message['attachments']
             attachment0 = attachments[0]
 
-            if attachment0['type'] != 'location':
-                reply = 'Type '+attachment0['type']+' is not allowed'
-            else:
+            lat = None
+            lon = None
+            if attachment0['type'] == 'location':
                 coord = attachment0['payload']['coordinates']
                 lat = coord['lat']
                 lon = coord['long']
+            else:
+                (lat,lon) = self.select_user_location(user_id)
+                if lat == None and lon == None:
+                    reply = 'Please set your location first.'
+
+            if lat != None and lon != None:
                 h = self.select_near_shop_from_redis(user_id,lat,lon,0)
                 if h != None:
                     reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])

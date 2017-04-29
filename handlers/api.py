@@ -48,7 +48,7 @@ class IndexHandler(BaseHandler):
 
 
 class ShopSelectableHandler(BaseHandler):
-    def select_from_redis(self,user_id,latitude,longitude,timestamp,callback=None):
+    def select_near_shop_from_redis(self,user_id,latitude,longitude,timestamp,callback=None):
         try:
             keyanddists = self.application.redisdb.execute_command('GEORADIUS','pos',longitude,latitude,3000,'km','WITHDIST')
         except Exception as e:
@@ -66,6 +66,18 @@ class ShopSelectableHandler(BaseHandler):
         else:
             return None
 
+    def register_user_location(self,user_id,latitude,longitude):
+        self.application.redisdb.hmadd('LOC_'+user_id,{
+            'lon':longitude,
+            'lat':latitude
+        })
+
+    def select_user_location(self,user_id):
+        h = self.application.redisdb.hmget('LOC_'+user_id)
+        if h == None: return (None,None)
+        lat = float(h['lat'])
+        lon = float(h['lon'])
+        return (lat,lon)
 
 class ForcePostHandler(ShopSelectableHandler):
     @tornado.web.asynchronous
@@ -74,7 +86,7 @@ class ForcePostHandler(ShopSelectableHandler):
         user_id = int(self.request.arguments['user_id'][0])
         latitude = float(self.request.arguments['latitude'][0])
         longitude = float(self.request.arguments['longitude'][0])
-        h = self.select_from_redis(user_id,latitude,longitude,0)
+        h = self.select_near_shop_from_redis(user_id,latitude,longitude,0)
 
         self.write(json.dumps(h))
         self.finish()
@@ -124,23 +136,35 @@ class LineWebhookHandler(ShopSelectableHandler):
         logger.info('Requested '+str(event))
         reply = None
         try:
-            if event.message.type != 'location':
-                reply = 'location messages are only available, given '+event.message.type
-
             if event.source.type != 'user':
                 reply = 'user sources are only available, given '+event.source.type
+                self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
+                return
 
-            if reply == None:
-                user_id = event.source.sender_id
+            timestamp = event.timestamp
+            user_id = event.source.sender_id
+            latitude = None
+            longitude = None
+            if event.message.type == 'location':
+                reply = 'location messages are only available, given '+event.message.type
                 latitude = event.message.latitude
                 longitude = event.message.longitude
-                timestamp = event.timestamp
-                h = self.select_from_redis(user_id,latitude,longitude,timestamp)
-                logger.info('Found'+str(h))
-                if h != None:
-                    reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
-                else:
-                    reply = 'No shops found'
+                self.register_user_location(user_id,latitude,longitude)
+                
+            elif event.message.type == 'text' and event.message.text == 'draw':
+                (latitude,longitude) = self.select_user_location(user_id)
+                if latitude == None and longitude == None:
+                    reply = 'Please set your location first.'
+                    self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
+                    return
+                
+            h = self.select_near_shop_from_redis(user_id,latitude,longitude,timestamp)
+
+            logger.info('Found'+str(h))
+            if h != None:
+                reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
+            else:
+                reply = 'No shops found'
 
             self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
 
@@ -210,7 +234,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                 coord = attachment0['payload']['coordinates']
                 lat = coord['lat']
                 lon = coord['long']
-                h = self.select_from_redis(user_id,lat,lon,0)
+                h = self.select_near_shop_from_redis(user_id,lat,lon,0)
                 if h != None:
                     reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 else:

@@ -239,6 +239,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                 coord = attachment0['payload']['coordinates']
                 lat = coord['lat']
                 lon = coord['long']
+                self.register_user_location(user_id,lat,lon)
             else:
                 (lat,lon) = self.select_user_location(user_id)
                 if lat == None and lon == None:

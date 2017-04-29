@@ -52,7 +52,8 @@ class ShopSelectableHandler(BaseHandler):
         try:
             keyanddists = self.application.redisdb.execute_command('GEORADIUS','pos',longitude,latitude,3000,'km','WITHDIST')
         except Exception as e:
-            logger.error(e.message)
+            import traceback
+            logger.error(traceback.format_exc())
             
         if len(keyanddists) > 0:
             keyanddist = random.choice(keyanddists)
@@ -169,7 +170,8 @@ class LineWebhookHandler(ShopSelectableHandler):
             self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
 
         except Exception as e:
-            logger.error(e.message)
+            import traceback
+            logger.error(traceback.format_exc())
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine
@@ -187,6 +189,9 @@ class LineWebhookHandler(ShopSelectableHandler):
             self.finish()
             
         except InvalidSignatureError as e:
+            import traceback
+            logger.error(traceback.format_exc())
+
             self.set_status(400)
             self.write(e.message)
             self.finish()
@@ -256,6 +261,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             r = requests.post(url,params=params,data=datastr,headers=headers)
             logger.info('Reply '+r.text)
         except Exception as e:
-            logger.error(e.message)
+            import traceback
+            logger.error(traceback.format_exc())
         finally:
             self.finish()

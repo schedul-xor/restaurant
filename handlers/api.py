@@ -67,7 +67,7 @@ class ShopSelectableHandler(BaseHandler):
             return None
 
     def register_user_location(self,user_id,latitude,longitude):
-        self.application.redisdb.hmadd('LOC_'+user_id,{
+        self.application.redisdb.hmset('LOC_'+user_id,{
             'lon':longitude,
             'lat':latitude
         })
@@ -151,7 +151,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                 longitude = event.message.longitude
                 self.register_user_location(user_id,latitude,longitude)
                 
-            elif event.message.type == 'text' and event.message.text == 'draw':
+            elif event.message.type == 'text' and event.message.text == 'one touch search':
                 (latitude,longitude) = self.select_user_location(user_id)
                 if latitude == None and longitude == None:
                     reply = 'Please set your location first.'

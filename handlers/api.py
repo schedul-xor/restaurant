@@ -73,7 +73,7 @@ class ShopSelectableHandler(BaseHandler):
         })
 
     def select_user_location(self,user_id):
-        h = self.application.redisdb.hmget('LOC_'+user_id)
+        h = self.application.redisdb.hgetall('LOC_'+user_id)
         if h == None: return (None,None)
         lat = float(h['lat'])
         lon = float(h['lon'])

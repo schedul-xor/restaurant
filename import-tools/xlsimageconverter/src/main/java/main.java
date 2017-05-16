@@ -107,6 +107,7 @@ public class main {
         JSONObject rootObj = new JSONObject();
         for (String posKey : foundRows.keySet()) {
             FoundRow fr = foundRows.get(posKey);
+            if(fr.name==null){continue;}
 
             String imgBase64 = null;
             String imgMime = null;

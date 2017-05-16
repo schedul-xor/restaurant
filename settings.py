@@ -21,6 +21,7 @@ define("messenger_verify_token",'')
 define("messenger_page_access_token",'')
 define('redis_url','redis://127.0.0.1:6379')
 define('redis_subscribe_channel','linelocation_channel')
+define("self_url",'http://localhost:8888/')
 tornado.options.parse_command_line()
 
 MEDIA_ROOT = path(ROOT, 'media')

@@ -98,7 +98,8 @@ class ImageHandler(BaseHandler):
     def get(self,shop_id):
         j = self.application.redisdb.hgetall(shop_id)
         self.set_header('Content-Type',j['image_mime'])
-        self.write(base64.b64decode(j['image_base64']))
+        b = base64.b64decode(j['image_base64'])
+        self.write(b)
         self.finish()
 
 class DBRefreshHandler(BaseHandler):
@@ -216,12 +217,13 @@ class LineWebhookHandler(ShopSelectableHandler):
 
             logger.info('Found'+str(h))
             if h != None:
-                url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
+                image_url = self.application.self_url+'/images/'+h['key']
+                external_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? '
                 self.application.line_bot_api.reply_message(event.reply_token,ImagemapSendMessage(
-                    base_url=url,
+                    base_url=image_url,
                     alt_text=reply,
-                    actions=[]
+                    actions=[URIImagemapAction(link_uri=external_url)]
                 ))
             else:
                 reply = 'No shops found'

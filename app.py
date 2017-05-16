@@ -22,6 +22,8 @@ class TornadoBoilerplate(tornado.web.Application):
         self.line_handler = WebhookHandler(options.line_channel_secret)
         self.line_qrcode_raw_text = options.line_qrcode_raw_text
 
+        self.self_url = options.self_url
+
         self.messenger_verify_token = options.messenger_verify_token
         self.messenger_page_access_token = options.messenger_page_access_token
             

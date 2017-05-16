@@ -1,2 +1,7 @@
 *.pyc
 *~
+build
+*.class
+import-tools/out*
+.gradle
+.idea

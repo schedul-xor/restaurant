@@ -7,5 +7,7 @@ url_patterns = [
     (r'/line/webhook$',handlers.api.LineWebhookHandler),
     (r'/messenger/webhook$',handlers.api.MessengerWebhookHandler),
     (r'/forcepost$',handlers.api.ForcePostHandler),
+    (r'/image/(.+)$',handlers.api.ImageHandler),
     (r'/dbrefresh$',handlers.api.DBRefreshHandler),
+    (r'/dbrefresh2$',handlers.api.DBRefresh2Handler),
 ]

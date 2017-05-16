@@ -9,9 +9,10 @@ import qrcode
 import qrcode.image.svg
 from StringIO import StringIO
 import json
-import logging
 import random
 import requests
+import base64
+import logging
 
 logger = logging.getLogger('boilerplate.' + __name__)
 
@@ -92,9 +93,18 @@ class ForcePostHandler(ShopSelectableHandler):
         self.write(json.dumps(h))
         self.finish()
 
+class ImageHandler(BaseHandler):
+    @tornado.web.asynchronous
+    def get(self,shop_id):
+        j = self.application.redisdb.hgetall(shop_id)
+        self.set_header('Content-Type',j['image_mime'])
+        self.write(base64.b64decode(j['image_base64']))
+        self.finish()
+
 class DBRefreshHandler(BaseHandler):
     def get(self):
         self.write('''<body>
+<p>Use <a href="/dbrefresh2">/dbrefresh2</a> for version 2</p>
 <form enctype="multipart/form-data" action="/dbrefresh" method="POST">
 <input type="file" name="filearg"/>
 <input type="submit" value="Submit"/>
@@ -117,6 +127,49 @@ class DBRefreshHandler(BaseHandler):
                 'name':name,
                 'longitude':longitude,
                 'latitude':latitude
+            }
+            self.application.redisdb.hmset(i,h)
+            self.application.redisdb.execute_command('GEOADD','pos',longitude,latitude,i)
+
+        self.write('Imported '+str(len(j))+' spot(s)')
+        self.finish()
+
+        
+
+class DBRefresh2Handler(BaseHandler):
+    def get(self):
+        self.write('''<body>
+<form enctype="multipart/form-data" action="/dbrefresh2" method="POST">
+<input type="file" name="filearg"/>
+<input type="submit" value="Submit"/>
+</form>
+</body>''')
+
+    @tornado.web.asynchronous
+    def post(self):
+        f = self.request.files['filearg'][0]
+        j = json.loads(f['body'])
+
+        self.application.redisdb.flushall()
+        
+        for i in j:
+            print i
+            o = j[i]
+            if o.has_key('name'):
+                name = o['name']
+            else:
+                name = ''
+            latitude = o['latitude']
+            longitude = o['longitude']
+            image_base64 = o['img_base64']
+            image_mime = o['img_mime']
+                
+            h = {
+                'name':name,
+                'longitude':longitude,
+                'latitude':latitude,
+                'image_base64':image_base64,
+                'image_mime':image_mime
             }
             self.application.redisdb.hmset(i,h)
             self.application.redisdb.execute_command('GEOADD','pos',longitude,latitude,i)

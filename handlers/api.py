@@ -4,7 +4,7 @@ import tornado.web
 import tornado.auth
 import tornado.escape
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import TextSendMessage
+from linebot.models import TextSendMessage,ImagemapSendMessage,URIImagemapAction
 import qrcode
 import qrcode.image.svg
 from StringIO import StringIO
@@ -216,11 +216,16 @@ class LineWebhookHandler(ShopSelectableHandler):
 
             logger.info('Found'+str(h))
             if h != None:
-                reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
+                url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
+                reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? '
+                self.application.line_bot_api.reply_message(event.reply_token,ImagemapSendMessage(
+                    base_url=url,
+                    alt_text=reply,
+                    actions=[]
+                ))
             else:
                 reply = 'No shops found'
-
-            self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
+                self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
 
         except Exception as e:
             import traceback

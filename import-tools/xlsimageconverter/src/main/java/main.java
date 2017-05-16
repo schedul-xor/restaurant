@@ -1,9 +1,16 @@
+import com.google.common.io.Files;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Shape;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
 
@@ -11,6 +18,8 @@ public class main {
     static final Logger log = LoggerFactory.getLogger(main.class);
 
     static public void main(String[] argv) {
+        System.setProperty("it.geosolutions.imageio.tiff.lazy", "true");
+
         String xlsFilePath = argv[0];
         String outputFilePath = argv[1];
 
@@ -104,8 +113,30 @@ public class main {
             if (pictureShapes.containsKey(posKey)) {
                 Picture pict = pictureShapes.get(posKey);
                 PictureData pdata = pict.getPictureData();
-                imgBase64 = new String(Base64.getEncoder().encode(pdata.getData()));
-                imgMime = pdata.getMimeType();
+
+                try {
+                    File tmpTiffFile = File.createTempFile("tmptiff", "."+pdata.suggestFileExtension());
+                    File tmpJpgFile = File.createTempFile("tmpjpg", ".jpg");
+
+                    log.info("  Conv {} -> {}",tmpTiffFile.getAbsolutePath(),tmpJpgFile.getAbsolutePath());
+
+                    FileOutputStream streamWriter = new FileOutputStream(tmpTiffFile);
+                    streamWriter.write(pdata.getData());
+                    streamWriter.flush();
+                    streamWriter.close();
+
+                    BufferedImage image = ImageIO.read(tmpTiffFile);
+                    BufferedImage tmp = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+                    Graphics2D off = tmp.createGraphics();
+                    off.drawImage(image, 0, 0, Color.WHITE, null);
+
+                    ImageIO.write(tmp, "jpg", tmpJpgFile);
+
+                    imgBase64 = new String(Base64.encodeBase64(Files.toByteArray(tmpJpgFile)));
+                    imgMime = "image/jpeg";
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             JSONObject obj = new JSONObject();

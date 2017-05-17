@@ -223,7 +223,7 @@ class LineWebhookHandler(ShopSelectableHandler):
             h = self.select_near_shop_from_redis(user_id,latitude,longitude,timestamp)
 
             if h != None:
-                image_url = self.application.self_url+'/images/'+h['key']
+                image_url = self.application.self_url+'/image/'+h['key']
                 logger.info('Use image '+image_url+' for '+str(h['key']))
                 image_width = int(h['image_width'])
                 image_height = int(h['image_height'])

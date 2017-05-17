@@ -4,7 +4,7 @@ import tornado.web
 import tornado.auth
 import tornado.escape
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import TextSendMessage,ImagemapSendMessage,URIImagemapAction
+from linebot.models import TextSendMessage,ImagemapSendMessage,URIImagemapAction,ImagemapArea,BaseSize
 import qrcode
 import qrcode.image.svg
 from StringIO import StringIO
@@ -12,6 +12,7 @@ import json
 import random
 import requests
 import base64
+from PIL import Image
 import logging
 
 logger = logging.getLogger('boilerplate.' + __name__)
@@ -154,7 +155,6 @@ class DBRefresh2Handler(BaseHandler):
         self.application.redisdb.flushall()
         
         for i in j:
-            print i
             o = j[i]
             if o.has_key('name'):
                 name = o['name']
@@ -164,13 +164,19 @@ class DBRefresh2Handler(BaseHandler):
             longitude = o['longitude']
             image_base64 = o['img_base64']
             image_mime = o['img_mime']
+
+            img_binary = base64.b64decode(image_base64)
+            im = Image.open(StringIO(img_binary))
+            im_width,im_height = im.size
                 
             h = {
                 'name':name,
                 'longitude':longitude,
                 'latitude':latitude,
                 'image_base64':image_base64,
-                'image_mime':image_mime
+                'image_mime':image_mime,
+                'image_width':im_width,
+                'image_height':im_height
             }
             self.application.redisdb.hmset(i,h)
             self.application.redisdb.execute_command('GEOADD','pos',longitude,latitude,i)
@@ -217,12 +223,18 @@ class LineWebhookHandler(ShopSelectableHandler):
 
             if h != None:
                 image_url = self.application.self_url+'/images/'+h['key']
+                image_width = int(h['image_width'])
+                image_height = int(h['image_height'])
                 external_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? '
                 self.application.line_bot_api.reply_message(event.reply_token,ImagemapSendMessage(
                     base_url=image_url,
+                    base_size=BaseSize(height=image_height,width=image_width),
                     alt_text=reply,
-                    actions=[URIImagemapAction(link_uri=external_url)]
+                    actions=[URIImagemapAction(
+                        link_uri=external_url,
+                        area=ImagemapArea(x=0,y=0,width=image_width,height=image_height)
+                    )]
                 ))
             else:
                 reply = 'No shops found'

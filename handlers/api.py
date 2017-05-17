@@ -223,8 +223,8 @@ class LineWebhookHandler(ShopSelectableHandler):
             h = self.select_near_shop_from_redis(user_id,latitude,longitude,timestamp)
 
             if h != None:
-                logger.info('Use key '+str(h))
                 image_url = self.application.self_url+'/images/'+h['key']
+                logger.info('Use image '+image_url+' for '+str(h['key']))
                 image_width = int(h['image_width'])
                 image_height = int(h['image_height'])
                 external_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])

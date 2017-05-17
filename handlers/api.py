@@ -231,17 +231,14 @@ class LineWebhookHandler(ShopSelectableHandler):
                 image_width = int(h['image_width'])
                 image_height = int(h['image_height'])
                 map_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
-                reply = h['name']+' ('+str(int(float(h['dist'])*10.0)/float(10.0))+'km)? '
+                reply = str(int(float(h['dist'])*10.0)/float(10.0))+'km far from here.'
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],
                     template=ButtonsTemplate(
                         thumbnail_image_url=image_url,
-                        title='Found shop',
+                        title=h['name'],
                         text=reply,
                         actions=[
-                            MessageTemplateAction(
-                                label='message', text=reply
-                            ),
                             URITemplateAction(
                                 label='Map',
                                 uri=map_url

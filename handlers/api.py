@@ -244,7 +244,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                             ),
                             URITemplateAction(
                                 label='Map',
-                                link_uri=map_url
+                                uri=map_url
                             )
                         ]
                     )

@@ -4,7 +4,7 @@ import tornado.web
 import tornado.auth
 import tornado.escape
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import TextSendMessage,ImagemapSendMessage,URIImagemapAction,ImagemapArea,BaseSize
+from linebot.models import TextSendMessage,TemplateSendMessage,URITemplateAction,MessageTemplateAction,PostbackTemplateAction,ButtonsTemplate
 import qrcode
 import qrcode.image.svg
 from StringIO import StringIO
@@ -230,16 +230,21 @@ class LineWebhookHandler(ShopSelectableHandler):
                 logger.info('Use image '+image_url+' for '+str(h['key']))
                 image_width = int(h['image_width'])
                 image_height = int(h['image_height'])
-                external_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
+                map_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? '
-                self.application.line_bot_api.reply_message(event.reply_token,ImagemapSendMessage(
-                    base_url=image_url,
-                    base_size=BaseSize(height=image_height,width=image_width),
-                    alt_text=reply,
-                    actions=[URIImagemapAction(
-                        link_uri=external_url,
-                        area=ImagemapArea(x=0,y=0,width=image_width,height=image_height)
-                    )]
+                self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
+                    alt_text=h['name'],
+                    template=ButtonsTemplate(
+                        thumbnail_image_url=image_url,
+                        title='Found shop',
+                        text=reply,
+                        actions=[
+                            URITemplateAction(
+                                label='Map',
+                                link_uri=map_url
+                            )
+                        ]
+                    )
                 ))
             else:
                 reply = 'No shops found'

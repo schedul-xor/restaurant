@@ -96,7 +96,7 @@ class ForcePostHandler(ShopSelectableHandler):
 
 class ImageHandler(BaseHandler):
     @tornado.web.asynchronous
-    def get(self,shop_id):
+    def get(self,shop_id,random_suffix):
         j = self.application.redisdb.hgetall(shop_id)
         self.set_header('Content-Type',j['image_mime'])
         b = base64.b64decode(j['image_base64'])
@@ -156,6 +156,9 @@ class DBRefresh2Handler(BaseHandler):
         
         for i in j:
             o = j[i]
+
+            i = i.replace('/','.')
+            
             if o.has_key('name'):
                 name = o['name']
             else:

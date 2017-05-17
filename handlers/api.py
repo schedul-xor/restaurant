@@ -236,7 +236,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     alt_text=h['name'],
                     template=ButtonsTemplate(
                         thumbnail_image_url=image_url,
-                        title=h['name'],
+                        title=h['name'][:40], # Limit 40 chars
                         text=reply,
                         actions=[
                             URITemplateAction(

@@ -239,6 +239,9 @@ class LineWebhookHandler(ShopSelectableHandler):
                         title='Found shop',
                         text=reply,
                         actions=[
+                            MessageTemplateAction(
+                                label='message', text=reply
+                            ),
                             URITemplateAction(
                                 label='Map',
                                 link_uri=map_url

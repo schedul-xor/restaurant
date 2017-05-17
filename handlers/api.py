@@ -231,6 +231,7 @@ class LineWebhookHandler(ShopSelectableHandler):
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
+            logger.error(e.error.details)
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine

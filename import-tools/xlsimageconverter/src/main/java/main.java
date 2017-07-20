@@ -46,7 +46,7 @@ public class main {
                     pictureShapes.put(posKey, pict);
                 }
 
-                for (int li = 7; li < s.getLastRowNum(); li++) {
+                for (int li = 1; li <= s.getLastRowNum(); li++) {
                     String posKey = si + "/" + li;
 
                     Row r = s.getRow(li);
@@ -56,7 +56,7 @@ public class main {
 
                     String title = null;
                     try {
-                        Cell c0 = r.getCell(0);
+                        Cell c0 = r.getCell(2);
                         if (c0.getCellTypeEnum() != CellType.STRING) {
                             continue;
                         }
@@ -68,26 +68,32 @@ public class main {
                     }
 
                     double latitude = 0, longitude = 0;
-                    try {
-                        Cell c1 = r.getCell(1);
-                        if (c1.getCellTypeEnum() != CellType.NUMERIC) {
-                            continue;
-                        }
+                    Cell cl = r.getCell(6);
+                    String ll = cl.getStringCellValue();
+                    String lla[] = ll.split("[\\s\\n]+");
+                    latitude = Double.parseDouble(lla[0]);
+                    longitude = Double.parseDouble(lla[1]);
 
-                        latitude = c1.getNumericCellValue();
-                    } catch (Exception e) {
-                        log.error("   {} {}", li, e);
-                    }
-                    try {
-                        Cell c2 = r.getCell(2);
-                        if (c2.getCellTypeEnum() != CellType.NUMERIC) {
-                            continue;
-                        }
-
-                        longitude = c2.getNumericCellValue();
-                    } catch (Exception e) {
-                        log.error("   {} {}", li, e);
-                    }
+//                    try {
+//                        Cell c1 = r.getCell(1);
+//                        if (c1.getCellTypeEnum() != CellType.NUMERIC) {
+//                            continue;
+//                        }
+//
+//                        latitude = c1.getNumericCellValue();
+//                    } catch (Exception e) {
+//                        log.error("   {} {}", li, e);
+//                    }
+//                    try {
+//                        Cell c2 = r.getCell(2);
+//                        if (c2.getCellTypeEnum() != CellType.NUMERIC) {
+//                            continue;
+//                        }
+//
+//                        longitude = c2.getNumericCellValue();
+//                    } catch (Exception e) {
+//                        log.error("   {} {}", li, e);
+//                    }
 
                     FoundRow fr = new FoundRow();
                     fr.name = title;

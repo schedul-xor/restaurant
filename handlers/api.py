@@ -245,7 +245,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                         actions=[
                             URITemplateAction(
                                 label='Map',
-                                uri=map_url.encode('UTF-8')
+                                uri=unicode(map_url,errors='replace')
                             )
                         ]
                     )

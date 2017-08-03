@@ -78,6 +78,7 @@ class ShopSelectableHandler(BaseHandler):
     def select_user_location(self,user_id):
         h = self.application.redisdb.hgetall('LOC_'+user_id)
         if h == None: return (None,None)
+        if not h.has_key('lat'): return (None,None)
         lat = float(h['lat'])
         lon = float(h['lon'])
         return (lat,lon)
@@ -221,7 +222,7 @@ class LineWebhookHandler(ShopSelectableHandler):
             elif event.message.type == 'text' and event.message.text == 'one touch search':
                 (latitude,longitude) = self.select_user_location(user_id)
                 if latitude == None and longitude == None:
-                    reply = 'Please set your location first.'
+                    reply = u'最初に、自分の現在位置を設定してください。'
                     self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
                     return
                 

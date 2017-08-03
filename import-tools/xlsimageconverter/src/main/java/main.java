@@ -66,8 +66,8 @@ public class main {
                             continue;
                         }
 
-                        title = c0.getStringCellValue();
-                        log.info("   {} {}", li, title);
+                        title = c0.getStringCellValue().trim();
+//                        log.info("   {} {}", li, title);
                     } catch (Exception e) {
                         log.error("   {} {}", li, e);
                     }
@@ -159,6 +159,7 @@ public class main {
             obj.put("name", fr.name);
             obj.put("img_base64", imgBase64);
             obj.put("img_mime", imgMime);
+            log.info("   {} {} {}", fr.latitude,fr.longitude,fr.name);
             rootObj.put(posKey, obj);
         }
 

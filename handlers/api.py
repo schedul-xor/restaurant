@@ -240,12 +240,12 @@ class LineWebhookHandler(ShopSelectableHandler):
                     alt_text=h['name'],
                     template=ButtonsTemplate(
                         thumbnail_image_url=image_url,
-                        title=h['name'][:40], # Limit 40 chars
+                        title=h['name'].decode('UTF-8')[:40], # Limit 40 chars
                         text=reply,
                         actions=[
                             URITemplateAction(
                                 label='Map',
-                                uri=unicode(map_url,errors='replace')
+                                uri=map_url
                             )
                         ]
                     )

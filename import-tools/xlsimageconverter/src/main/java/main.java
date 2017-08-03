@@ -12,6 +12,7 @@ import java.awt.*;
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.text.Normalizer;
 import java.util.*;
 
 public class main {
@@ -38,15 +39,19 @@ public class main {
                 log.info("  Sheet {} {} l{}->{}", si, s.getSheetName(), s.getFirstRowNum(), s.getLastRowNum());
 
                 for (Shape shp : s.getDrawingPatriarch()) {
-                    Picture pict = (Picture) shp;
-                    int anchorRow = pict.getClientAnchor().getRow1();
+                    try {
+                        Picture pict = (Picture) shp;
+                        int anchorRow = pict.getClientAnchor().getRow1();
 
-                    String posKey = si + "/" + anchorRow;
+                        String posKey = si + "/" + anchorRow;
 
-                    pictureShapes.put(posKey, pict);
+                        pictureShapes.put(posKey, pict);
+                    }catch(Exception e){
+                        e.printStackTrace();
+                    }
                 }
 
-                for (int li = 1; li <= s.getLastRowNum(); li++) {
+                for (int li = 2; li <= s.getLastRowNum(); li++) {
                     String posKey = si + "/" + li;
 
                     Row r = s.getRow(li);
@@ -69,10 +74,12 @@ public class main {
 
                     double latitude = 0, longitude = 0;
                     Cell cl = r.getCell(6);
-                    String ll = cl.getStringCellValue();
+                    if(cl == null){continue;}
+                    String ll = Normalizer.normalize(cl.getStringCellValue(), Normalizer.Form.NFKC).trim();
+                    if(ll.equals("")){continue;}
                     String lla[] = ll.split("[\\s\\n]+");
-                    latitude = Double.parseDouble(lla[0]);
-                    longitude = Double.parseDouble(lla[1]);
+                    latitude = Double.parseDouble(lla[0].trim());
+                    longitude = Double.parseDouble(lla[1].trim());
 
 //                    try {
 //                        Cell c1 = r.getCell(1);

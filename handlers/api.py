@@ -165,6 +165,8 @@ class DBRefresh2Handler(BaseHandler):
                 name = ''
             latitude = o['latitude']
             longitude = o['longitude']
+            if not o.has_key('img_base64'):
+                continue
             image_base64 = o['img_base64']
             image_mime = o['img_mime']
 

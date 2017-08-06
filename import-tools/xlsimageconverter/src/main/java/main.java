@@ -3,6 +3,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Shape;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,9 +47,22 @@ public class main {
                         String posKey = si + "/" + anchorRow;
 
                         pictureShapes.put(posKey, pict);
-                    }catch(Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
+                }
+
+                // Category headers
+                Map<Integer, String> categoryNames = new HashMap<>();
+                Row headerRow = s.getRow(0);
+                for (int c = 7; c < 255; c++) {
+                    Cell c0 = headerRow.getCell(c);
+                    if (c0 == null || c0.getCellTypeEnum() != CellType.STRING) {
+                        break;
+                    }
+                    String categoryTitle = c0.getStringCellValue().trim();
+                    log.info("Category title {}={}", c, categoryTitle);
+                    categoryNames.put(c, categoryTitle);
                 }
 
                 for (int li = 2; li <= s.getLastRowNum(); li++) {
@@ -74,9 +88,13 @@ public class main {
 
                     double latitude = 0, longitude = 0;
                     Cell cl = r.getCell(6);
-                    if(cl == null){continue;}
+                    if (cl == null) {
+                        continue;
+                    }
                     String ll = Normalizer.normalize(cl.getStringCellValue(), Normalizer.Form.NFKC).trim();
-                    if(ll.equals("")){continue;}
+                    if (ll.equals("")) {
+                        continue;
+                    }
                     String lla[] = ll.split("[\\s\\n]+");
                     latitude = Double.parseDouble(lla[0].trim());
                     longitude = Double.parseDouble(lla[1].trim());
@@ -106,6 +124,17 @@ public class main {
                     fr.name = title;
                     fr.latitude = latitude;
                     fr.longitude = longitude;
+                    for (Map.Entry<Integer, String> kv : categoryNames.entrySet()) {
+                        Cell categoryCl = r.getCell(kv.getKey());
+                        if (categoryCl == null) {
+                            continue;
+                        }
+                        String check = categoryCl.getStringCellValue().trim();
+                        if (check.equals("")) {
+                            continue;
+                        }
+                        fr.categories.add(kv.getKey());
+                    }
                     foundRows.put(posKey, fr);
                 }
 
@@ -120,7 +149,9 @@ public class main {
         JSONObject rootObj = new JSONObject();
         for (String posKey : foundRows.keySet()) {
             FoundRow fr = foundRows.get(posKey);
-            if(fr.name==null){continue;}
+            if (fr.name == null) {
+                continue;
+            }
 
             String imgBase64 = null;
             String imgMime = null;
@@ -129,10 +160,10 @@ public class main {
                 PictureData pdata = pict.getPictureData();
 
                 try {
-                    File tmpTiffFile = File.createTempFile("tmptiff", "."+pdata.suggestFileExtension());
+                    File tmpTiffFile = File.createTempFile("tmptiff", "." + pdata.suggestFileExtension());
                     File tmpJpgFile = File.createTempFile("tmpjpg", ".jpg");
 
-                    log.info("  Conv {} -> {}",tmpTiffFile.getAbsolutePath(),tmpJpgFile.getAbsolutePath());
+                    log.info("  Conv {} -> {}", tmpTiffFile.getAbsolutePath(), tmpJpgFile.getAbsolutePath());
 
                     FileOutputStream streamWriter = new FileOutputStream(tmpTiffFile);
                     streamWriter.write(pdata.getData());
@@ -159,7 +190,13 @@ public class main {
             obj.put("name", fr.name);
             obj.put("img_base64", imgBase64);
             obj.put("img_mime", imgMime);
-            log.info("   {} {} {}", fr.latitude,fr.longitude,fr.name);
+
+            JSONArray categoryIdsObj = new JSONArray();
+            for (int categoryId : fr.categories) {
+                categoryIdsObj.put(categoryId);
+            }
+            obj.put("category_ids", categoryIdsObj);
+            log.info("   {} {} {}", fr.latitude, fr.longitude, fr.name);
             rootObj.put(posKey, obj);
         }
 

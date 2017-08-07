@@ -50,9 +50,14 @@ class IndexHandler(BaseHandler):
 
 
 class ShopSelectableHandler(BaseHandler):
-    def select_near_shop_from_redis(self,user_id,latitude,longitude,timestamp,callback=None):
+    def select_near_shop_from_redis(self,user_id,latitude,longitude,category_id,timestamp,callback=None):
+        DISTANCE_OFFSET = (3000,'km')
+        if category_id == None:
+            target_key = 'pos'
+        else:
+            target_key = 'pos'+str(category_id)
         try:
-            keyanddists = self.application.redisdb.execute_command('GEORADIUS','pos',longitude,latitude,3000,'km','WITHDIST')
+            keyanddists = self.application.redisdb.execute_command('GEORADIUS',target_key,longitude,latitude,DISTANCE_OFFSET[0],DISTANCE_OFFSET[1],'WITHDIST')
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
@@ -90,7 +95,7 @@ class ForcePostHandler(ShopSelectableHandler):
         user_id = int(self.request.arguments['user_id'][0])
         latitude = float(self.request.arguments['latitude'][0])
         longitude = float(self.request.arguments['longitude'][0])
-        h = self.select_near_shop_from_redis(user_id,latitude,longitude,0)
+        h = self.select_near_shop_from_redis(user_id,latitude,longitude,None,0)
 
         self.write(json.dumps(h))
         self.finish()
@@ -153,8 +158,24 @@ class DBRefresh2Handler(BaseHandler):
         f = self.request.files['filearg'][0]
         j = json.loads(f['body'])
 
-        self.application.redisdb.flushall()
+        # self.application.redisdb.flushall()
+        if self.application.redisdb.exists('ALL_KEYS'):
+            prev_keys = self.application.redisdb.smembers('ALL_KEYS')
+            for key in prev_keys:
+                self.application.redisdb.delete(key)
+            self.write('Deleted previous '+str(len(prev_keys))+' spot(s)')
+            self.application.redisdb.delete('ALL_KEYS')
+
         
+        if self.application.redisdb.exists('ALL_CATEGORIES'):
+            prev_categories = self.application.redisdb.smembers('ALL_CATEGORIES')
+            for category_id in prev_categories:
+                self.application.redisdb.delete('ALL_CATEGORY'+category_id+'_KEYS')
+        self.application.redisdb.delete('ALL_CATEGORIES')
+        
+        self.application.redisdb.delete('pos')
+
+        imported_keys = []
         for i in j:
             o = j[i]
 
@@ -171,6 +192,14 @@ class DBRefresh2Handler(BaseHandler):
             image_base64 = o['img_base64']
             image_mime = o['img_mime']
 
+            category_ids = []
+            if o.has_key('category_ids'):
+                for category_id in o['category_ids']:
+                    category_ids.append(category_id)
+                    self.application.redisdb.sadd('ALL_CATEGORIES',category_id)
+                    self.application.redisdb.sadd('ALL_CATEGORY'+str(category_id)+'_KEYS',i)
+                    self.application.redisdb.execute_command('GEOADD','pos'+str(category_id),longitude,latitude,i)
+
             img_binary = base64.b64decode(image_base64)
             im = Image.open(StringIO(img_binary))
             im_width,im_height = im.size
@@ -186,6 +215,7 @@ class DBRefresh2Handler(BaseHandler):
             }
             self.application.redisdb.hmset(i,h)
             self.application.redisdb.execute_command('GEOADD','pos',longitude,latitude,i)
+            self.application.redisdb.sadd('ALL_KEYS',i)
             logger.info('Inserted key '+i)
 
         self.write('Imported '+str(len(j))+' spot(s)')
@@ -211,6 +241,7 @@ class LineWebhookHandler(ShopSelectableHandler):
 
             timestamp = event.timestamp
             user_id = event.source.sender_id
+            category_id = None
             latitude = None
             longitude = None
             if event.message.type == 'location':
@@ -218,15 +249,18 @@ class LineWebhookHandler(ShopSelectableHandler):
                 latitude = event.message.latitude
                 longitude = event.message.longitude
                 self.register_user_location(user_id,latitude,longitude)
-                
+
             elif event.message.type == 'text' and event.message.text == 'one touch search':
+                if len(event.message.text) > len('one touch search'):
+                    category_id = event.message.text[len('one touch search')+1:]
+                    
                 (latitude,longitude) = self.select_user_location(user_id)
                 if latitude == None and longitude == None:
                     reply = u'最初に、自分の現在位置を設定してください。'
                     self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
                     return
                 
-            h = self.select_near_shop_from_redis(user_id,latitude,longitude,timestamp)
+            h = self.select_near_shop_from_redis(user_id,latitude,longitude,category_id,timestamp)
 
             if h != None:
                 image_url = self.application.self_url+'/image/'+h['key']
@@ -332,7 +366,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                     reply = 'Please set your location first.'
 
             if lat != None and lon != None:
-                h = self.select_near_shop_from_redis(user_id,lat,lon,0)
+                h = self.select_near_shop_from_redis(user_id,lat,lon,None,0)
                 if h != None:
                     reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 else:

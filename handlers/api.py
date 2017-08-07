@@ -51,7 +51,7 @@ class IndexHandler(BaseHandler):
 
 class ShopSelectableHandler(BaseHandler):
     def select_near_shop_from_redis(self,user_id,latitude,longitude,category_id,timestamp,callback=None):
-        DISTANCE_OFFSET = (3000,'km')
+        DISTANCE_OFFSET = (3000.0,'km')
         if category_id == None:
             target_key = 'pos'
         else:

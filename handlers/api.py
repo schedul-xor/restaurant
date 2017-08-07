@@ -188,10 +188,17 @@ class DBRefresh2Handler(BaseHandler):
                 name = ''
             latitude = o['latitude']
             longitude = o['longitude']
-            if not o.has_key('img_base64'):
-                continue
+            if not o.has_key('img_base64'): continue
             image_base64 = o['img_base64']
             image_mime = o['img_mime']
+            budget = ''
+            if o.has_key('budget'): budget = o['budget']
+            building_name = ''
+            if o.has_key('building_name'): building_name = o['building_name']
+            floor_name = ''
+            if o.has_key('floor_name'): floor_name = o['floor_name']
+            explicit_category_name = ''
+            if o.has_key('explicit_category_name'): explicit_category_name = o['explicit_category_name']
 
             category_ids = []
             if o.has_key('category_ids'):
@@ -212,8 +219,12 @@ class DBRefresh2Handler(BaseHandler):
                 'image_base64':image_base64,
                 'image_mime':image_mime,
                 'image_width':im_width,
-                'image_height':im_height
-            }
+                'image_height':im_height,
+                'budget':budget, 
+                'building_name':building_name,
+                'floor_name':floor_name,
+                'explicit_category_name':explicit_category_name
+           }
             self.application.redisdb.hmset(i,h)
             self.application.redisdb.execute_command('GEOADD','pos',longitude,latitude,i)
             self.application.redisdb.sadd('ALL_KEYS',i)

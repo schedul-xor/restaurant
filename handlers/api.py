@@ -283,7 +283,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                 logger.info('Map url: '+map_url)
                 reply = h['explicit_category_name']
                 reply = reply+' ここから'
-                reply = reply+unicode(int(float(h['dist'])*10.0)/float(10.0))
+                reply = reply+str(int(float(h['dist'])*10.0)/float(10.0))
                 reply = reply+'km、'
                 reply = reply+h['building_name']
                 reply = reply+' '

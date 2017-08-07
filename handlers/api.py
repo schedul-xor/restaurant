@@ -250,9 +250,9 @@ class LineWebhookHandler(ShopSelectableHandler):
                 longitude = event.message.longitude
                 self.register_user_location(user_id,latitude,longitude)
 
-            elif event.message.type == 'text' and event.message.text == 'one touch search':
+            elif event.message.type == 'text' and if len(event.message.text) >= len('one touch search') and event.message.text[:len('one touch search')] == 'one touch search':
                 if len(event.message.text) > len('one touch search'):
-                    category_id = event.message.text[len('one touch search')+1:]
+                    category_id = event.message.text[len('one touch search'):]
                     
                 (latitude,longitude) = self.select_user_location(user_id)
                 if latitude == None and longitude == None:

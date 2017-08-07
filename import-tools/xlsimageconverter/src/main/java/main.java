@@ -86,6 +86,56 @@ public class main {
                         log.error("   {} {}", li, e);
                     }
 
+                    String explicitCategoryName = null;
+                    try {
+                        Cell c0 = r.getCell(4);
+                        if (c0.getCellTypeEnum() != CellType.STRING) {
+                            continue;
+                        }
+
+                        explicitCategoryName = c0.getStringCellValue().trim();
+//                        log.info("   {} {}", li, title);
+                    } catch (Exception e) {
+                        log.error("   {} {}", li, e);
+                    }
+
+                    String budget = null;
+                    try {
+                        Cell c0 = r.getCell(5);
+                        if (c0.getCellTypeEnum() != CellType.STRING) {
+                            continue;
+                        }
+
+                        budget = c0.getStringCellValue().trim();
+//                        log.info("   {} {}", li, title);
+                    } catch (Exception e) {
+                        log.error("   {} {}", li, e);
+                    }
+
+                    String floorName = null;
+                    try {
+                        Cell c0 = r.getCell(1);
+                        if (c0.getCellTypeEnum() != CellType.STRING) {
+                            continue;
+                        }
+
+                        floorName = c0.getStringCellValue().trim();
+                    } catch (Exception e) {
+                        log.error("   {} {}", li, e);
+                    }
+
+                    String buildingName = null;
+                    try {
+                        Cell c0 = r.getCell(0);
+                        if (c0.getCellTypeEnum() != CellType.STRING) {
+                            continue;
+                        }
+
+                        buildingName = c0.getStringCellValue().trim();
+                    } catch (Exception e) {
+                        log.error("   {} {}", li, e);
+                    }
+
                     double latitude = 0, longitude = 0;
                     Cell cl = r.getCell(6);
                     if (cl == null) {
@@ -124,6 +174,10 @@ public class main {
                     fr.name = title;
                     fr.latitude = latitude;
                     fr.longitude = longitude;
+                    fr.buildingName = buildingName;
+                    fr.floorName = floorName;
+                    fr.explicitCategoryName = explicitCategoryName;
+                    fr.budget = budget;
                     for (Map.Entry<Integer, String> kv : categoryNames.entrySet()) {
                         Cell categoryCl = r.getCell(kv.getKey());
                         if (categoryCl == null) {
@@ -190,6 +244,10 @@ public class main {
             obj.put("name", fr.name);
             obj.put("img_base64", imgBase64);
             obj.put("img_mime", imgMime);
+            obj.put("budget", fr.budget);
+            obj.put("building_name", fr.buildingName);
+            obj.put("explicit_category_name", fr.explicitCategoryName);
+            obj.put("floor_name", fr.floorName);
 
             JSONArray categoryIdsObj = new JSONArray();
             for (int categoryId : fr.categories) {

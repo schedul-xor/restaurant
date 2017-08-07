@@ -282,16 +282,16 @@ class LineWebhookHandler(ShopSelectableHandler):
                 map_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 logger.info('Map url: '+map_url)
                 reply = h['explicit_category_name']
-                reply = reply+u' ここから'
+                reply = reply+' ここから'
                 reply = reply+unicode(int(float(h['dist'])*10.0)/float(10.0))
-                reply = reply+u'km、'
+                reply = reply+'km、'
                 reply = reply+h['building_name']
-                reply = reply+u' '
+                reply = reply+' '
                 reply = reply+h['floor_name']
                 if h['budget'] != '':
-                    reply = reply+u' 予算'
+                    reply = reply+' 予算'
                     reply = reply+h['budget']
-                    reply = reply+u'円'
+                    reply = reply+'円'
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],
                     template=ButtonsTemplate(

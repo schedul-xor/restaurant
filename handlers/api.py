@@ -56,6 +56,7 @@ class ShopSelectableHandler(BaseHandler):
             target_key = 'pos'
         else:
             target_key = 'pos'+str(category_id)
+        logger.info(target_key+' '+str(DISTANCE_OFFSET))
         try:
             keyanddists = self.application.redisdb.execute_command('GEORADIUS',target_key,longitude,latitude,DISTANCE_OFFSET[0],DISTANCE_OFFSET[1],'WITHDIST')
         except Exception as e:

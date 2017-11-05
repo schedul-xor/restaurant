@@ -279,7 +279,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                 img_url = self.application.self_url+'/static/img/location.png'
                 actions = [MessageTemplateAction(label='位置情報を設定してください',text=RECOMMEND_REGISTERING_LOCATION.encode('UTF-8'))]
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
-                    alt_text='',
+                    alt_text='位置情報を設定してください',
                     template=ButtonsTemplate(
                         thumbnail_image_url=img_url,
                         title='説明',

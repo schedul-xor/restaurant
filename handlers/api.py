@@ -290,7 +290,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                 return
             
             elif event.type == 'unfollow':
-                self.application.redisdb.delete('LOC_'+set(event.source.user_id))
+                self.application.redisdb.delete('LOC_'+str(event.source.user_id))
                 return
             elif event.message.type == 'location':
                 reply = 'location messages are only available, given '+event.message.type

@@ -76,12 +76,13 @@ class ShopSelectableHandler(BaseHandler):
 
     def select_random_shop_from_redis(self,user_id,category_id,timestamp,callback=None):
         try:
-            key = self.application.redisdb.srandmember('ALL_CATEGORY'+str(category_id)+'_KEYS',1)
+            keys = self.application.redisdb.srandmember('ALL_CATEGORY'+str(category_id)+'_KEYS',1)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
             
-        if key != None:
+        if len(keys) > 0:
+            key = keys[0]
             dist = 100
             h = self.application.redisdb.hgetall(key)
             h['key'] = key
@@ -309,6 +310,8 @@ class LineWebhookHandler(ShopSelectableHandler):
                     reply = reply+' 予算'
                     reply = reply+h['budget']
                     reply = reply+'円'
+                if not is_based_on_geo:
+                    reply = reply+' (御自身の位置情報を設定されることで、位置情報にもとづいた御提案をいたします)'
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],
                     template=ButtonsTemplate(

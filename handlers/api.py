@@ -282,7 +282,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     alt_text='',
                     template=ButtonsTemplate(
                         thumbnail_image_url=img_url,
-                        title=h['name'].decode('UTF-8')[:40], # Limit 40 chars
+                        title='説明',
                         text=RECOMMEND_REGISTERING_LOCATION,
                         actions=actions
                     )

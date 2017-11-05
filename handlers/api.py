@@ -85,7 +85,7 @@ class ShopSelectableHandler(BaseHandler):
             
         if len(keys) > 0:
             key = keys[0]
-            dist = 100
+            dist = None
             h = self.application.redisdb.hgetall(key)
             h['key'] = key
             h['dist'] = dist
@@ -310,9 +310,10 @@ class LineWebhookHandler(ShopSelectableHandler):
                 map_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 logger.info('Map url: '+map_url)
                 reply = h['explicit_category_name']
-                reply = reply+' ここから'
-                reply = reply+str(int(float(h['dist'])*10.0)/float(10.0))
-                reply = reply+'km、'
+                if h['dist'] != None:
+                    reply = reply+' ここから'
+                    reply = reply+str(int(float(h['dist'])*10.0)/float(10.0))
+                    reply = reply+'km、'
                 reply = reply+h['building_name']
                 reply = reply+' '
                 reply = reply+h['floor_name']

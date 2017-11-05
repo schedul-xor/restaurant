@@ -4,7 +4,7 @@ import tornado.web
 import tornado.auth
 import tornado.escape
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import TextSendMessage,TemplateSendMessage,URITemplateAction,MessageTemplateAction,PostbackTemplateAction,ButtonsTemplate
+from linebot.models import TextSendMessage,ImageSendMessage,TemplateSendMessage,URITemplateAction,MessageTemplateAction,PostbackTemplateAction,ButtonsTemplate
 import qrcode
 import qrcode.image.svg
 from StringIO import StringIO
@@ -16,6 +16,8 @@ from PIL import Image
 import logging
 
 logger = logging.getLogger('boilerplate.' + __name__)
+
+RECOMMEND_REGISTERING_LOCATION = '位置情報を設定されることで、位置情報にもとづいた御提案をいたします'
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -288,6 +290,14 @@ class LineWebhookHandler(ShopSelectableHandler):
                     h = self.select_random_shop_from_redis(user_id,category_id,timestamp)
                     is_based_on_geo = False
 
+            elif event.message.type == 'text' and len(event.message.text) >= len(RECOMMEND_REGISTERING_LOCATION) and event.message.text[:len(RECOMMEND_REGISTERING_LOCATION)] == RECOMMEND_REGISTERING_LOCATION:
+                img_url = self.application.self_url+'/static/img/location.png'
+                self.application.line_bot_api.reply_message(event.reply_token,ImageSendMessage(
+                    original_content_url=img_url,
+                    preview_image_url=img_url
+                ))
+                return
+
             if h == None:
                 h = self.select_near_shop_from_redis(user_id,latitude,longitude,category_id,timestamp)
                 is_based_on_geo = True
@@ -316,7 +326,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     uri=map_url
                 )]
                 if not is_based_on_geo:
-                    actions.append(MessageTemplateAction(label='位置情報を設定してください',text='位置情報を設定されることで、位置情報にもとづいた御提案をいたします'))
+                    actions.append(MessageTemplateAction(label='位置情報を設定してください',text=RECOMMEND_REGISTERING_LOCATION))
                 
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],

@@ -275,7 +275,24 @@ class LineWebhookHandler(ShopSelectableHandler):
             longitude = None
             is_based_on_geo = False
             h = None
-            if event.message.type == 'location':
+            if event.type == 'follow':
+                img_url = self.application.self_url+'/static/img/location.png'
+                actions = [MessageTemplateAction(label='位置情報を設定してください',text=RECOMMEND_REGISTERING_LOCATION.encode('UTF-8'))]
+                self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
+                    alt_text='',
+                    template=ButtonsTemplate(
+                        thumbnail_image_url=img_url,
+                        title=h['name'].decode('UTF-8')[:40], # Limit 40 chars
+                        text=RECOMMEND_REGISTERING_LOCATION,
+                        actions=actions
+                    )
+                ))
+                return
+            
+            elif event.type == 'unfollow':
+                self.application.redisdb.delete('LOC_'+set(event.source.user_id))
+                return
+            elif event.message.type == 'location':
                 reply = 'location messages are only available, given '+event.message.type
                 latitude = event.message.latitude
                 longitude = event.message.longitude
@@ -296,7 +313,6 @@ class LineWebhookHandler(ShopSelectableHandler):
                     original_content_url=img_url,
                     preview_image_url=img_url
                 ))
-                return
 
             if h == None:
                 h = self.select_near_shop_from_redis(user_id,latitude,longitude,category_id,timestamp)
@@ -371,7 +387,7 @@ class LineWebhookHandler(ShopSelectableHandler):
             self.write(e.message)
             self.finish()
 
-        
+            
 class LineQrCodeHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self):

@@ -310,8 +310,6 @@ class LineWebhookHandler(ShopSelectableHandler):
                     reply = reply+' 予算'
                     reply = reply+h['budget']
                     reply = reply+'円'
-                if not is_based_on_geo:
-                    reply = reply+' (御自身の位置情報を設定されることで、位置情報にもとづいた御提案をいたします)'
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],
                     template=ButtonsTemplate(
@@ -326,6 +324,9 @@ class LineWebhookHandler(ShopSelectableHandler):
                         ]
                     )
                 ))
+                if not is_based_on_geo:
+                    self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=' (御自身の位置情報を設定されることで、位置情報にもとづいた御提案をいたします)'))
+                    
             else:
                 reply = 'No shops found'
                 self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))

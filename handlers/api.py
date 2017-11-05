@@ -316,7 +316,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     uri=map_url
                 )]
                 if not is_based_on_geo:
-                    actions.append(MessageTemplateAction(label='位置情報を設定してください',message='位置情報を設定されることで、位置情報にもとづいた御提案をいたします'))
+                    actions.append(MessageTemplateAction(label='位置情報を設定してください',text='位置情報を設定されることで、位置情報にもとづいた御提案をいたします'))
                 
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],

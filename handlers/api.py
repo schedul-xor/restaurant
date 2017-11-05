@@ -17,7 +17,7 @@ import logging
 
 logger = logging.getLogger('boilerplate.' + __name__)
 
-RECOMMEND_REGISTERING_LOCATION = '位置情報を設定されることで、位置情報にもとづいた御提案をいたします'
+RECOMMEND_REGISTERING_LOCATION = u'位置情報を設定されることで、位置情報にもとづいた御提案をいたします'
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -326,7 +326,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     uri=map_url
                 )]
                 if not is_based_on_geo:
-                    actions.append(MessageTemplateAction(label='位置情報を設定してください',text=RECOMMEND_REGISTERING_LOCATION))
+                    actions.append(MessageTemplateAction(label='位置情報を設定してください',text=RECOMMEND_REGISTERING_LOCATION.encode('UTF-8')))
                 
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],

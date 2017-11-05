@@ -72,8 +72,22 @@ class ShopSelectableHandler(BaseHandler):
             h['key'] = key
             h['dist'] = dist
             return h
-        else:
-            return None
+        else: return None
+
+    def select_random_shop_from_redis(self,user_id,category_id,timestamp,callback=None):
+        try:
+            key = self.application.redisdb.srandmember('ALL_CATEGORY'+str(category_id)+'_KEYS',1)
+        except Exception as e:
+            import traceback
+            logger.error(traceback.format_exc())
+            
+        if key != None:
+            dist = 100
+            h = self.application.redisdb.hgetall(key)
+            h['key'] = key
+            h['dist'] = dist
+            return h
+        else: return None
 
     def register_user_location(self,user_id,latitude,longitude):
         self.application.redisdb.hmset('LOC_'+user_id,{
@@ -256,6 +270,8 @@ class LineWebhookHandler(ShopSelectableHandler):
             category_id = None
             latitude = None
             longitude = None
+            is_based_on_geo = False
+            h = None
             if event.message.type == 'location':
                 reply = 'location messages are only available, given '+event.message.type
                 latitude = event.message.latitude
@@ -268,11 +284,12 @@ class LineWebhookHandler(ShopSelectableHandler):
                     
                 (latitude,longitude) = self.select_user_location(user_id)
                 if latitude == None and longitude == None:
-                    reply = u'最初に、自分の現在位置を設定してください。'
-                    self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
-                    return
-                
-            h = self.select_near_shop_from_redis(user_id,latitude,longitude,category_id,timestamp)
+                    h = self.select_random_shop_from_redis(user_id,category_id,timestamp)
+                    is_based_on_geo = False
+
+            if h == None:
+                h = self.select_near_shop_from_redis(user_id,latitude,longitude,category_id,timestamp)
+                is_based_on_geo = True
 
             if h != None:
                 image_url = self.application.self_url+'/image/'+h['key']

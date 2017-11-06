@@ -52,19 +52,6 @@ public class main {
                     }
                 }
 
-                // Category headers
-                Map<Integer, String> categoryNames = new HashMap<>();
-                Row headerRow = s.getRow(0);
-                for (int c = 7; c < 255; c++) {
-                    Cell c0 = headerRow.getCell(c);
-                    if (c0 == null || c0.getCellTypeEnum() != CellType.STRING) {
-                        break;
-                    }
-                    String categoryTitle = c0.getStringCellValue().trim();
-                    log.info("Category title {}={}", c, categoryTitle);
-                    categoryNames.put(c, categoryTitle);
-                }
-
                 for (int li = 2; li <= s.getLastRowNum(); li++) {
                     String posKey = si + "/" + li;
 
@@ -75,26 +62,28 @@ public class main {
 
                     String title = null;
                     try {
-                        Cell c0 = r.getCell(2);
+                        Cell c0 = r.getCell(0);
                         if (c0.getCellTypeEnum() != CellType.STRING) {
+                            log.warn("  l67 not {}",c0.getCellTypeEnum());
                             continue;
                         }
 
                         title = c0.getStringCellValue().trim();
-//                        log.info("   {} {}", li, title);
                     } catch (Exception e) {
                         log.error("   {} {}", li, e);
                     }
 
-                    String explicitCategoryName = null;
+                    String explicitCategoryName = "";
                     try {
-                        Cell c0 = r.getCell(4);
-                        if (c0.getCellTypeEnum() != CellType.STRING) {
+                        Cell c0 = r.getCell(6);
+                        if(c0 == null || c0.getCellTypeEnum()==CellType.BLANK){
+                            explicitCategoryName="";
+                        }                        else if (c0.getCellTypeEnum() != CellType.STRING) {
+                            log.warn("  l81 not {}",c0.getCellTypeEnum());
                             continue;
+                        }else {
+                            explicitCategoryName = "ライブ時間: " + c0.getStringCellValue().trim();
                         }
-
-                        explicitCategoryName = c0.getStringCellValue().trim();
-//                        log.info("   {} {}", li, title);
                     } catch (Exception e) {
                         log.error("   {} {}", li, e);
                     }
@@ -102,32 +91,25 @@ public class main {
                     String budget = null;
                     try {
                         Cell c0 = r.getCell(5);
-                        if (c0.getCellTypeEnum() != CellType.STRING) {
+                        if(c0 == null || c0.getCellTypeEnum()==CellType.BLANK){
+                            budget="";
+                        }else if (c0.getCellTypeEnum() != CellType.STRING) {
+                            log.warn("  l95 not {}",c0.getCellTypeEnum());
                             continue;
+                        }else {
+                            budget = c0.getStringCellValue().trim();
                         }
-
-                        budget = c0.getStringCellValue().trim();
-//                        log.info("   {} {}", li, title);
                     } catch (Exception e) {
                         log.error("   {} {}", li, e);
                     }
 
-                    String floorName = null;
-                    try {
-                        Cell c0 = r.getCell(1);
-                        if (c0.getCellTypeEnum() != CellType.STRING) {
-                            continue;
-                        }
-
-                        floorName = c0.getStringCellValue().trim();
-                    } catch (Exception e) {
-                        log.error("   {} {}", li, e);
-                    }
+                    String floorName = "";
 
                     String buildingName = null;
                     try {
-                        Cell c0 = r.getCell(0);
+                        Cell c0 = r.getCell(2);
                         if (c0.getCellTypeEnum() != CellType.STRING) {
+                            log.warn("  l110 not {}",c0.getCellTypeEnum());
                             continue;
                         }
 
@@ -137,38 +119,28 @@ public class main {
                     }
 
                     double latitude = 0, longitude = 0;
-                    Cell cl = r.getCell(6);
-                    if (cl == null) {
-                        continue;
-                    }
-                    String ll = Normalizer.normalize(cl.getStringCellValue(), Normalizer.Form.NFKC).trim();
-                    if (ll.equals("")) {
-                        continue;
-                    }
-                    String lla[] = ll.split("[\\s\\n]+");
-                    latitude = Double.parseDouble(lla[0].trim());
-                    longitude = Double.parseDouble(lla[1].trim());
+                    try {
+                        Cell c0 = r.getCell(3);
+                        if (c0.getCellTypeEnum() != CellType.NUMERIC) {
+                            log.warn("  l123 not {}",c0.getCellTypeEnum());
+                            continue;
+                        }
 
-//                    try {
-//                        Cell c1 = r.getCell(1);
-//                        if (c1.getCellTypeEnum() != CellType.NUMERIC) {
-//                            continue;
-//                        }
-//
-//                        latitude = c1.getNumericCellValue();
-//                    } catch (Exception e) {
-//                        log.error("   {} {}", li, e);
-//                    }
-//                    try {
-//                        Cell c2 = r.getCell(2);
-//                        if (c2.getCellTypeEnum() != CellType.NUMERIC) {
-//                            continue;
-//                        }
-//
-//                        longitude = c2.getNumericCellValue();
-//                    } catch (Exception e) {
-//                        log.error("   {} {}", li, e);
-//                    }
+                        latitude = c0.getNumericCellValue();
+                    } catch (Exception e) {
+                        log.error("   {} {}", li, e);
+                    }
+                    try {
+                        Cell c0 = r.getCell(4);
+                        if (c0.getCellTypeEnum() != CellType.NUMERIC) {
+                            log.warn("  l134 not {}",c0.getCellTypeEnum());
+                            continue;
+                        }
+
+                        longitude = c0.getNumericCellValue();
+                    } catch (Exception e) {
+                        log.error("   {} {}", li, e);
+                    }
 
                     FoundRow fr = new FoundRow();
                     fr.name = title;
@@ -178,17 +150,7 @@ public class main {
                     fr.floorName = floorName;
                     fr.explicitCategoryName = explicitCategoryName;
                     fr.budget = budget;
-                    for (Map.Entry<Integer, String> kv : categoryNames.entrySet()) {
-                        Cell categoryCl = r.getCell(kv.getKey());
-                        if (categoryCl == null) {
-                            continue;
-                        }
-                        String check = categoryCl.getStringCellValue().trim();
-                        if (check.equals("")) {
-                            continue;
-                        }
-                        fr.categories.add(kv.getKey());
-                    }
+                    fr.categories.add(1);
                     foundRows.put(posKey, fr);
                 }
 
@@ -200,7 +162,7 @@ public class main {
             e.printStackTrace();
         }
 
-        JSONObject rootObj = new JSONObject();
+        JSONObject bodyObj = new JSONObject();
         for (String posKey : foundRows.keySet()) {
             FoundRow fr = foundRows.get(posKey);
             if (fr.name == null) {
@@ -255,13 +217,13 @@ public class main {
             }
             obj.put("category_ids", categoryIdsObj);
             log.info("   {} {} {}", fr.latitude, fr.longitude, fr.name);
-            rootObj.put(posKey, obj);
+            bodyObj.put(posKey, obj);
         }
 
         File outputFile = new File(outputFilePath);
         try {
             FileWriter fw = new FileWriter(outputFile);
-            fw.write(rootObj.toString());
+            fw.write(bodyObj.toString());
             fw.flush();
             fw.close();
         } catch (IOException e) {

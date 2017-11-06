@@ -350,7 +350,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     template=ButtonsTemplate(
                         thumbnail_image_url=image_url,
                         title=h['name'].decode('UTF-8')[:40], # Limit 40 chars
-                        text=reply,
+                        text=reply.decode('UTF-8')[:60], # Limit 60 chars
                         actions=actions
                     )
                 ))

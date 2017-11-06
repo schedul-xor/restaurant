@@ -61,7 +61,7 @@ class ShopSelectableHandler(BaseHandler):
         logger.info(target_key+' '+str(DISTANCE_OFFSET)+' lon'+str(longitude)+'/lat'+str(latitude))
         keyanddists = []
         try:
-            keyanddists = self.application.redisdb.execute_command('GEORADIUS',target_key,longitude,latitude,DISTANCE_OFFSET[0],DISTANCE_OFFSET[1],'WITHDIST')
+            keyanddists = self.application.redisdb.georadius(target_key,longitude,latitude,DISTANCE_OFFSET[0],unit=DISTANCE_OFFSET[1],withdist=True)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())

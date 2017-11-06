@@ -53,12 +53,13 @@ class IndexHandler(BaseHandler):
 
 class ShopSelectableHandler(BaseHandler):
     def select_near_shop_from_redis(self,user_id,latitude,longitude,category_id,timestamp,callback=None):
-        DISTANCE_OFFSET = (3000.0,'km')
+        DISTANCE_OFFSET = (10.0,'km')
         if category_id == None:
             target_key = 'pos'
         else:
             target_key = 'pos'+str(category_id)
         logger.info(target_key+' '+str(DISTANCE_OFFSET))
+        keyanddists = []
         try:
             keyanddists = self.application.redisdb.execute_command('GEORADIUS',target_key,longitude,latitude,DISTANCE_OFFSET[0],DISTANCE_OFFSET[1],'WITHDIST')
         except Exception as e:
@@ -176,7 +177,6 @@ class DBRefresh2Handler(BaseHandler):
         f = self.request.files['filearg'][0]
         j = json.loads(f['body'])
 
-        # self.application.redisdb.flushall()
         if self.application.redisdb.exists('ALL_KEYS'):
             prev_keys = self.application.redisdb.smembers('ALL_KEYS')
             for key in prev_keys:

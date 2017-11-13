@@ -33,7 +33,7 @@ public class main {
         Map<String, Picture> pictureShapes = new HashMap<>();
         Map<String, FoundRow> foundRows = new HashMap<>();
 
-ZipSecureFile.setMinInflateRatio(0); // Ignore zip bomb reduction
+        ZipSecureFile.setMinInflateRatio(0); // Ignore zip bomb reduction
 
         try {
             Workbook book = WorkbookFactory.create(xlsFile);
@@ -67,7 +67,7 @@ ZipSecureFile.setMinInflateRatio(0); // Ignore zip bomb reduction
                     try {
                         Cell c0 = r.getCell(0);
                         if (c0.getCellTypeEnum() != CellType.STRING) {
-                            log.warn("  l67 not {}",c0.getCellTypeEnum());
+                            log.warn("  l67 not {}", c0.getCellTypeEnum());
                             continue;
                         }
 
@@ -76,16 +76,17 @@ ZipSecureFile.setMinInflateRatio(0); // Ignore zip bomb reduction
                         log.error("   {} {}", li, e);
                     }
 
+                    // TEL
                     String explicitCategoryName = "";
                     try {
-                        Cell c0 = r.getCell(6);
-                        if(c0 == null || c0.getCellTypeEnum()==CellType.BLANK){
-                            explicitCategoryName="";
-                        }                        else if (c0.getCellTypeEnum() != CellType.STRING) {
-                            log.warn("  l81 not {}",c0.getCellTypeEnum());
+                        Cell c0 = r.getCell(8);
+                        if (c0 == null || c0.getCellTypeEnum() == CellType.BLANK) {
+                            explicitCategoryName = "";
+                        } else if (c0.getCellTypeEnum() != CellType.STRING) {
+                            log.warn("  l81 not {}", c0.getCellTypeEnum());
                             continue;
-                        }else {
-                            explicitCategoryName = "ライブ時間: " + c0.getStringCellValue().trim();
+                        } else {
+                            explicitCategoryName = c0.getStringCellValue().trim();
                         }
                     } catch (Exception e) {
                         log.error("   {} {}", li, e);
@@ -93,26 +94,39 @@ ZipSecureFile.setMinInflateRatio(0); // Ignore zip bomb reduction
 
                     String budget = null;
                     try {
-                        Cell c0 = r.getCell(5);
-                        if(c0 == null || c0.getCellTypeEnum()==CellType.BLANK){
-                            budget="";
-                        }else if (c0.getCellTypeEnum() != CellType.STRING) {
-                            log.warn("  l95 not {}",c0.getCellTypeEnum());
+                        Cell c0 = r.getCell(7);
+                        if (c0 == null || c0.getCellTypeEnum() == CellType.BLANK) {
+                            budget = "";
+                        } else if (c0.getCellTypeEnum() != CellType.STRING) {
+                            log.warn("  l95 not {}", c0.getCellTypeEnum());
                             continue;
-                        }else {
+                        } else {
                             budget = c0.getStringCellValue().trim();
                         }
                     } catch (Exception e) {
                         log.error("   {} {}", li, e);
                     }
 
+                    // Used as charge
                     String floorName = "";
+                    try {
+                        Cell c0 = r.getCell(5);
+                        if (c0.getCellTypeEnum() != CellType.STRING) {
+                            log.warn("  l110 not {}", c0.getCellTypeEnum());
+                            continue;
+                        }
 
+                        floorName = c0.getStringCellValue().trim();
+                    } catch (Exception e) {
+                        log.error("   {} {}", li, e);
+                    }
+
+                    // Nearest station
                     String buildingName = null;
                     try {
                         Cell c0 = r.getCell(2);
                         if (c0.getCellTypeEnum() != CellType.STRING) {
-                            log.warn("  l110 not {}",c0.getCellTypeEnum());
+                            log.warn("  l110 not {}", c0.getCellTypeEnum());
                             continue;
                         }
 
@@ -125,7 +139,7 @@ ZipSecureFile.setMinInflateRatio(0); // Ignore zip bomb reduction
                     try {
                         Cell c0 = r.getCell(3);
                         if (c0.getCellTypeEnum() != CellType.NUMERIC) {
-                            log.warn("  l123 not {}",c0.getCellTypeEnum());
+                            log.warn("  l123 not {}", c0.getCellTypeEnum());
                             continue;
                         }
 
@@ -136,7 +150,7 @@ ZipSecureFile.setMinInflateRatio(0); // Ignore zip bomb reduction
                     try {
                         Cell c0 = r.getCell(4);
                         if (c0.getCellTypeEnum() != CellType.NUMERIC) {
-                            log.warn("  l134 not {}",c0.getCellTypeEnum());
+                            log.warn("  l134 not {}", c0.getCellTypeEnum());
                             continue;
                         }
 
@@ -192,7 +206,7 @@ ZipSecureFile.setMinInflateRatio(0); // Ignore zip bomb reduction
                     Graphics2D off = tmp.createGraphics();
                     off.drawImage(image, 0, 0, Color.WHITE, null);
 
-                    log.info("  Conv {} -> {} {}x{}", tmpTiffFile.getAbsolutePath(), tmpJpgFile.getAbsolutePath(),image.getWidth(), image.getHeight());
+                    log.info("  Conv {} -> {} {}x{}", tmpTiffFile.getAbsolutePath(), tmpJpgFile.getAbsolutePath(), image.getWidth(), image.getHeight());
 
                     ImageIO.write(tmp, "jpg", tmpJpgFile);
 

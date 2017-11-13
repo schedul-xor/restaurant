@@ -1,6 +1,7 @@
 import com.google.common.io.Files;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Shape;
 import org.json.JSONArray;
@@ -31,6 +32,8 @@ public class main {
 
         Map<String, Picture> pictureShapes = new HashMap<>();
         Map<String, FoundRow> foundRows = new HashMap<>();
+
+ZipSecureFile.setMinInflateRatio(0); // Ignore zip bomb reduction
 
         try {
             Workbook book = WorkbookFactory.create(xlsFile);
@@ -179,8 +182,6 @@ public class main {
                     File tmpTiffFile = File.createTempFile("tmptiff", "." + pdata.suggestFileExtension());
                     File tmpJpgFile = File.createTempFile("tmpjpg", ".jpg");
 
-                    log.info("  Conv {} -> {}", tmpTiffFile.getAbsolutePath(), tmpJpgFile.getAbsolutePath());
-
                     FileOutputStream streamWriter = new FileOutputStream(tmpTiffFile);
                     streamWriter.write(pdata.getData());
                     streamWriter.flush();
@@ -190,6 +191,8 @@ public class main {
                     BufferedImage tmp = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
                     Graphics2D off = tmp.createGraphics();
                     off.drawImage(image, 0, 0, Color.WHITE, null);
+
+                    log.info("  Conv {} -> {} {}x{}", tmpTiffFile.getAbsolutePath(), tmpJpgFile.getAbsolutePath(),image.getWidth(), image.getHeight());
 
                     ImageIO.write(tmp, "jpg", tmpJpgFile);
 

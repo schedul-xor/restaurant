@@ -326,14 +326,13 @@ class LineWebhookHandler(ShopSelectableHandler):
                 map_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 logger.info('Map url: '+map_url)
                 reply = ''
-                for k in ['building_name','floor_name','budget']:
+                for k in ['building_name','floor_name','budget','explicit_category_name']:
                     if h[k] != '' and h[k] != None:
                         if reply != '':
                             reply = reply+' '
                         reply = reply+h[k]
                     else:
                         logger.info('No '+k+'='+str(h[k]))
-                reply = h['explicit_category_name']
                 if h['dist'] != None:
                     reply = reply+' ここから'
                     reply = reply+str(int(float(h['dist'])*10.0)/float(10.0))

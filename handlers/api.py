@@ -204,6 +204,8 @@ class DBRefresh2Handler(BaseHandler):
             else:
                 name = ''
             latitude = o['latitude']
+            if not o.has_key('latitude'): continue
+            if latitude == None: continue
             longitude = o['longitude']
             if not o.has_key('img_base64'): continue
             image_base64 = o['img_base64']
@@ -326,7 +328,8 @@ class LineWebhookHandler(ShopSelectableHandler):
                 reply = ''
                 for k in ['building_name','floor_name','budget']:
                     if h[k] != '' and h[k] != None:
-                        reply = reply+' '
+                        if reply != '':
+                            reply = reply+' '
                         reply = reply+h[k]
                 reply = h['explicit_category_name']
                 if h['dist'] != None:

@@ -322,7 +322,7 @@ class LineWebhookHandler(ShopSelectableHandler):
 
             if h != None:
                 image_url = self.application.self_url+'/image/'+h['key']
-                logger.info('Use image '+image_url+' for '+str(h['key']))
+                logger.info('Use image '+image_url+' for '+str(h['key'])+' '+str(h))
                 map_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 logger.info('Map url: '+map_url)
                 reply = ''

@@ -336,7 +336,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                 if h['dist'] != None:
                     reply = reply+' ここから'
                     reply = reply+str(int(float(h['dist'])*10.0)/float(10.0))
-                    reply = reply+'km、'
+                    reply = reply+'km'
                     
                 actions = [URITemplateAction(
                     label=u'地図を見る',

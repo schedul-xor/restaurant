@@ -331,6 +331,8 @@ class LineWebhookHandler(ShopSelectableHandler):
                         if reply != '':
                             reply = reply+' '
                         reply = reply+h[k]
+                    else:
+                        logger.info('No '+k+'='+str(h[k]))
                 reply = h['explicit_category_name']
                 if h['dist'] != None:
                     reply = reply+' ここから'

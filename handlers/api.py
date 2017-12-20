@@ -433,15 +433,10 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                 self.register_user_location(user_id,lat,lon)
             else:
                 (lat,lon) = self.select_user_location(user_id)
-                if lat == None and lon == None:
-                    reply = 'Please set your location first.'
 
             if lat != None and lon != None:
                 h = self.select_near_shop_from_redis(user_id,lat,lon,None,0)
-                if h != None:
-                    reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
-                else:
-                    reply = 'No shops found'
+                reply = '!!!'
 
             url = 'https://graph.facebook.com/v2.6/me/messages'
             headers = {'content-type':'application/json'}

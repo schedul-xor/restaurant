@@ -437,7 +437,11 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             data = {'recipient':{'id':user_id},'message':{'text':'Nothing found.'}}
             h = self.select_random_shop_from_redis(user_id,1,0) # 1 = category id
             if h != None:
-                data = {'recipient':{'id':user_id},'message':{'text':json.dumps(h)}}
+                result_title = h['name']
+                result_content = h['explicit_category_name']
+                result_str = title+"\n"+result_content
+                result_str = result_str[:2000] # 2000 is the limit of words
+                data = {'recipient':{'id':user_id},'message':{'text':result_str}}
 
             url = 'https://graph.facebook.com/v2.6/me/messages'
             headers = {'content-type':'application/json'}

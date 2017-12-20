@@ -464,22 +464,11 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                                             'type':'web_url',
                                             'url':'http://ogiqvo.com/',
                                             'messenger_extensions':False,
-                                            'webview_height_ratio':'tall',
-                                            'fallback_url':'http://ogiqvo.com/'
+                                            'webview_height_ratio':'tall'
                                         }
                                     }
                                 ],
-                                'buttons':[
-                                    {
-                                        "type":"web_url",
-                                        "url":"http://ogiqvo.com/",
-                                        "title":"View Website"
-                                    },{
-                                        "type":"postback",
-                                        "title":"Start Chatting",
-                                        "payload":"DEVELOPER_DEFINED_PAYLOAD"
-                                    }
-                                ]
+                                'buttons':[]
                             }
                         }
                     }

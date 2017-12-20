@@ -441,20 +441,37 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             h = self.select_random_shop_from_redis(user_id,None,0)
             if h != None:
                 result_title = h['name']
-                result_content = h['explicit_category_name']
+                result_content = h['explicit_category_name'][:2000]
                 result_str = result_title+"\n"+result_content
                 result_str = result_str[:2000] # 2000 is the limit of words
                 
                 image_url = self.application.self_url+'/image/'+h['key']
                 logger.info('Use image '+image_url+' for '+str(h['key'])+' '+str(h))
                 
-                data = {'recipient':{'id':user_id},'message':{'attachment':{
-                    'type':'image',
-                    'payload':{
-                        'url':image_url,
-                        'is_reusable':True
+                data = {
+                    'recipient':{'id':user_id},
+                    'message':{
+                        'attachment':{
+                            'type':'template',
+                            'payload':{
+                                'template_type':'generic',
+                                'elements':[
+                                    'title':result_title,
+                                    'subtitle':result_content,
+                                    'image_url':image_url,
+                                    'default_action':{
+                                        'type':'web_url',
+                                        'url':'http://ogiqvo.com/',
+                                        'messenger_extensions':False,
+                                        'webview_height_ratio':'tall',
+                                        'fallback_url':'http://ogiqvo.com/'
+                                    }
+                                ],
+                                'buttons':[]
+                            }
+                        }
                     }
-                },'text':result_str}}
+                }
 
             url = 'https://graph.facebook.com/v2.6/me/messages'
             headers = {'content-type':'application/json'}

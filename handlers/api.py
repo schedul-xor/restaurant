@@ -439,7 +439,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             if h != None:
                 result_title = h['name']
                 result_content = h['explicit_category_name']
-                result_str = title+"\n"+result_content
+                result_str = result_title+"\n"+result_content
                 result_str = result_str[:2000] # 2000 is the limit of words
                 data = {'recipient':{'id':user_id},'message':{'text':result_str}}
 

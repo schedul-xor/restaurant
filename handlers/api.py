@@ -435,10 +435,9 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                 (lat,lon) = self.select_user_location(user_id)
 
             data = {'recipient':{'id':user_id},'message':{'text':'Nothing found.'}}
-            if lat != None and lon != None:
-                h = self.select_near_shop_from_redis(user_id,lat,lon,None,0)
-                if h != None:
-                    data = {'recipient':{'id':user_id},'message':{'text':json.dumps(h)}}
+            h = self.select_random_shop_from_redis(user_id,None,0)
+            if h != None:
+                data = {'recipient':{'id':user_id},'message':{'text':json.dumps(h)}}
 
             url = 'https://graph.facebook.com/v2.6/me/messages'
             headers = {'content-type':'application/json'}

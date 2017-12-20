@@ -467,8 +467,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                                             'webview_height_ratio':'tall'
                                         }
                                     }
-                                ],
-                                'buttons':[]
+                                ]
                             }
                         }
                     }

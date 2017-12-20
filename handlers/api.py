@@ -436,7 +436,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
 
             if lat != None and lon != None:
                 h = self.select_near_shop_from_redis(user_id,lat,lon,None,0)
-                reply = '!!!'
+            reply = '!!!'
 
             url = 'https://graph.facebook.com/v2.6/me/messages'
             headers = {'content-type':'application/json'}

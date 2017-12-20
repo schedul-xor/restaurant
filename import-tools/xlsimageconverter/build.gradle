@@ -1,4 +1,4 @@
-group 'com.ogiqvo.mlitekikara'
+group 'com.ogiqvo.xlsimageconverter'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
@@ -38,8 +38,7 @@ compile group: 'com.github.jai-imageio', name: 'jai-imageio-core', version: '1.3
 task fatJar(type: Jar) {
 	manifest {
         attributes 'Implementation-Title': 'Gradle Jar File Example',
-        	'Implementation-Version': version,
-                'Main-Class': 'main'
+        	'Implementation-Version': version, 'Main-Class': 'main'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

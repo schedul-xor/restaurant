@@ -1,6 +1,6 @@
 tornado
 line-bot-sdk
 qrcode
-redis
+redis>='2.10.6'
 requests
 pillow

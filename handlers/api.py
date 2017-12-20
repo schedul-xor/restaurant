@@ -4,7 +4,7 @@ import tornado.web
 import tornado.auth
 import tornado.escape
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import TextSendMessage,TemplateSendMessage,URITemplateAction,MessageTemplateAction,PostbackTemplateAction,ButtonsTemplate
+from linebot.models import TextSendMessage,ImageSendMessage,TemplateSendMessage,URITemplateAction,MessageTemplateAction,PostbackTemplateAction,ButtonsTemplate
 import qrcode
 import qrcode.image.svg
 from StringIO import StringIO
@@ -16,6 +16,8 @@ from PIL import Image
 import logging
 
 logger = logging.getLogger('boilerplate.' + __name__)
+
+RECOMMEND_REGISTERING_LOCATION = u'位置情報を設定されることで、位置情報にもとづいた御提案をいたします'
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -50,9 +52,16 @@ class IndexHandler(BaseHandler):
 
 
 class ShopSelectableHandler(BaseHandler):
-    def select_near_shop_from_redis(self,user_id,latitude,longitude,timestamp,callback=None):
+    def select_near_shop_from_redis(self,user_id,latitude,longitude,category_id,timestamp,callback=None):
+        DISTANCE_OFFSET = (10.0,'km')
+        if category_id == None:
+            target_key = 'pos'
+        else:
+            target_key = 'pos'+str(category_id)
+        logger.info(target_key+' '+str(DISTANCE_OFFSET)+' lon'+str(longitude)+'/lat'+str(latitude))
+        keyanddists = []
         try:
-            keyanddists = self.application.redisdb.execute_command('GEORADIUS','pos',longitude,latitude,3000,'km','WITHDIST')
+            keyanddists = self.application.redisdb.georadius(target_key,longitude,latitude,DISTANCE_OFFSET[0],unit=DISTANCE_OFFSET[1],withdist=True)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
@@ -66,8 +75,23 @@ class ShopSelectableHandler(BaseHandler):
             h['key'] = key
             h['dist'] = dist
             return h
-        else:
-            return None
+        else: return None
+
+    def select_random_shop_from_redis(self,user_id,category_id,timestamp,callback=None):
+        try:
+            keys = self.application.redisdb.srandmember('ALL_CATEGORY'+str(category_id)+'_KEYS',1)
+        except Exception as e:
+            import traceback
+            logger.error(traceback.format_exc())
+            
+        if len(keys) > 0:
+            key = keys[0]
+            dist = None
+            h = self.application.redisdb.hgetall(key)
+            h['key'] = key
+            h['dist'] = dist
+            return h
+        else: return None
 
     def register_user_location(self,user_id,latitude,longitude):
         self.application.redisdb.hmset('LOC_'+user_id,{
@@ -78,6 +102,7 @@ class ShopSelectableHandler(BaseHandler):
     def select_user_location(self,user_id):
         h = self.application.redisdb.hgetall('LOC_'+user_id)
         if h == None or not h.has_key('lat'): return (None,None)
+        if not h.has_key('lat'): return (None,None)
         lat = float(h['lat'])
         lon = float(h['lon'])
         return (lat,lon)
@@ -89,7 +114,7 @@ class ForcePostHandler(ShopSelectableHandler):
         user_id = int(self.request.arguments['user_id'][0])
         latitude = float(self.request.arguments['latitude'][0])
         longitude = float(self.request.arguments['longitude'][0])
-        h = self.select_near_shop_from_redis(user_id,latitude,longitude,0)
+        h = self.select_near_shop_from_redis(user_id,latitude,longitude,None,0)
 
         self.write(json.dumps(h))
         self.finish()
@@ -152,8 +177,23 @@ class DBRefresh2Handler(BaseHandler):
         f = self.request.files['filearg'][0]
         j = json.loads(f['body'])
 
-        self.application.redisdb.flushall()
+        if self.application.redisdb.exists('ALL_KEYS'):
+            prev_keys = self.application.redisdb.smembers('ALL_KEYS')
+            for key in prev_keys:
+                self.application.redisdb.delete(key)
+            self.write('Deleted previous '+str(len(prev_keys))+' spot(s)')
+            self.application.redisdb.delete('ALL_KEYS')
+
         
+        if self.application.redisdb.exists('ALL_CATEGORIES'):
+            prev_categories = self.application.redisdb.smembers('ALL_CATEGORIES')
+            for category_id in prev_categories:
+                self.application.redisdb.delete('ALL_CATEGORY'+category_id+'_KEYS')
+        self.application.redisdb.delete('ALL_CATEGORIES')
+        
+        self.application.redisdb.delete('pos')
+
+        imported_keys = []
         for i in j:
             o = j[i]
 
@@ -164,9 +204,28 @@ class DBRefresh2Handler(BaseHandler):
             else:
                 name = ''
             latitude = o['latitude']
+            if not o.has_key('latitude'): continue
+            if latitude == None: continue
             longitude = o['longitude']
+            if not o.has_key('img_base64'): continue
             image_base64 = o['img_base64']
             image_mime = o['img_mime']
+            budget = ''
+            if o.has_key('budget'): budget = o['budget']
+            building_name = ''
+            if o.has_key('building_name'): building_name = o['building_name']
+            floor_name = ''
+            if o.has_key('floor_name'): floor_name = o['floor_name']
+            explicit_category_name = ''
+            if o.has_key('explicit_category_name'): explicit_category_name = o['explicit_category_name']
+
+            category_ids = []
+            if o.has_key('category_ids'):
+                for category_id in o['category_ids']:
+                    category_ids.append(category_id)
+                    self.application.redisdb.sadd('ALL_CATEGORIES',category_id)
+                    self.application.redisdb.sadd('ALL_CATEGORY'+str(category_id)+'_KEYS',i)
+                    self.application.redisdb.execute_command('GEOADD','pos'+str(category_id),longitude,latitude,i)
 
             img_binary = base64.b64decode(image_base64)
             im = Image.open(StringIO(img_binary))
@@ -179,10 +238,15 @@ class DBRefresh2Handler(BaseHandler):
                 'image_base64':image_base64,
                 'image_mime':image_mime,
                 'image_width':im_width,
-                'image_height':im_height
-            }
+                'image_height':im_height,
+                'budget':budget, 
+                'building_name':building_name,
+                'floor_name':floor_name,
+                'explicit_category_name':explicit_category_name
+           }
             self.application.redisdb.hmset(i,h)
             self.application.redisdb.execute_command('GEOADD','pos',longitude,latitude,i)
+            self.application.redisdb.sadd('ALL_KEYS',i)
             logger.info('Inserted key '+i)
 
         self.write('Imported '+str(len(j))+' spot(s)')
@@ -208,44 +272,89 @@ class LineWebhookHandler(ShopSelectableHandler):
 
             timestamp = event.timestamp
             user_id = event.source.sender_id
+            category_id = None
             latitude = None
             longitude = None
-            if event.message.type == 'location':
+            is_based_on_geo = False
+            h = None
+            if event.type == 'follow':
+                img_url = self.application.self_url+'/static/img/location.png'
+                actions = [MessageTemplateAction(label='位置情報を設定してください',text=RECOMMEND_REGISTERING_LOCATION.encode('UTF-8'))]
+                self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
+                    alt_text='位置情報を設定してください',
+                    template=ButtonsTemplate(
+                        thumbnail_image_url=img_url,
+                        title='説明',
+                        text=RECOMMEND_REGISTERING_LOCATION,
+                        actions=actions
+                    )
+                ))
+                return
+            
+            elif event.type == 'unfollow':
+                self.application.redisdb.delete('LOC_'+str(event.source.user_id))
+                return
+            elif event.message.type == 'location':
                 reply = 'location messages are only available, given '+event.message.type
                 latitude = event.message.latitude
                 longitude = event.message.longitude
                 self.register_user_location(user_id,latitude,longitude)
-                
-            elif event.message.type == 'text' and event.message.text == 'one touch search':
+
+            elif event.message.type == 'text' and len(event.message.text) >= len('one touch search') and event.message.text[:len('one touch search')] == 'one touch search':
+                if len(event.message.text) > len('one touch search'):
+                    category_id = event.message.text[len('one touch search'):]
+                    
                 (latitude,longitude) = self.select_user_location(user_id)
                 if latitude == None and longitude == None:
-                    reply = 'Please set your location first.'
-                    self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
-                    return
-                
-            h = self.select_near_shop_from_redis(user_id,latitude,longitude,timestamp)
+                    h = self.select_random_shop_from_redis(user_id,category_id,timestamp)
+                    is_based_on_geo = False
+
+            elif event.message.type == 'text' and len(event.message.text) >= len(RECOMMEND_REGISTERING_LOCATION) and event.message.text[:len(RECOMMEND_REGISTERING_LOCATION)] == RECOMMEND_REGISTERING_LOCATION:
+                img_url = self.application.self_url+'/static/img/location.png'
+                self.application.line_bot_api.reply_message(event.reply_token,ImageSendMessage(
+                    original_content_url=img_url,
+                    preview_image_url=img_url
+                ))
+
+            if h == None:
+                h = self.select_near_shop_from_redis(user_id,latitude,longitude,category_id,timestamp)
+                is_based_on_geo = True
 
             if h != None:
                 image_url = self.application.self_url+'/image/'+h['key']
-                logger.info('Use image '+image_url+' for '+str(h['key']))
-                image_width = int(h['image_width'])
-                image_height = int(h['image_height'])
+                logger.info('Use image '+image_url+' for '+str(h['key'])+' '+str(h))
                 map_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
-                reply = str(int(float(h['dist'])*10.0)/float(10.0))+'km far from here.'
+                logger.info('Map url: '+map_url)
+                reply = ''
+                for k in ['building_name','floor_name','budget','explicit_category_name']:
+                    if h[k] != '' and h[k] != None:
+                        if reply != '':
+                            reply = reply+' '
+                        reply = reply+h[k]
+                    else:
+                        logger.info('No '+k+'='+str(h[k]))
+                if h['dist'] != None:
+                    reply = reply+' ここから'
+                    reply = reply+str(int(float(h['dist'])*10.0)/float(10.0))
+                    reply = reply+'km、'
+                    
+                actions = [URITemplateAction(
+                    label=u'地図を見る',
+                    uri=map_url
+                )]
+                if not is_based_on_geo:
+                    actions.append(MessageTemplateAction(label='位置情報を設定してください',text=RECOMMEND_REGISTERING_LOCATION.encode('UTF-8')))
+                
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],
                     template=ButtonsTemplate(
                         thumbnail_image_url=image_url,
-                        title=h['name'][:40], # Limit 40 chars
-                        text=reply,
-                        actions=[
-                            URITemplateAction(
-                                label='Map',
-                                uri=map_url
-                            )
-                        ]
+                        title=h['name'].decode('UTF-8')[:40], # Limit 40 chars
+                        text=reply.decode('UTF-8')[:60], # Limit 60 chars
+                        actions=actions
                     )
                 ))
+                    
             else:
                 reply = 'No shops found'
                 self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
@@ -278,7 +387,7 @@ class LineWebhookHandler(ShopSelectableHandler):
             self.write(e.message)
             self.finish()
 
-        
+            
 class LineQrCodeHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
@@ -328,7 +437,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                     reply = 'Please set your location first.'
 
             if lat != None and lon != None:
-                h = self.select_near_shop_from_redis(user_id,lat,lon,0)
+                h = self.select_near_shop_from_redis(user_id,lat,lon,None,0)
                 if h != None:
                     reply = 'How about '+h['name']+' which is '+str(h['dist'])+'km far from here? http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
                 else:

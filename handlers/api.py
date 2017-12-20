@@ -435,7 +435,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                 (lat,lon) = self.select_user_location(user_id)
 
             data = {'recipient':{'id':user_id},'message':{'text':'Nothing found.'}}
-            h = self.select_random_shop_from_redis(user_id,None,0)
+            h = self.select_random_shop_from_redis(user_id,1,0) # 1 = category id
             if h != None:
                 data = {'recipient':{'id':user_id},'message':{'text':json.dumps(h)}}
 

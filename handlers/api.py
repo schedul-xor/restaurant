@@ -456,15 +456,17 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                             'payload':{
                                 'template_type':'generic',
                                 'elements':[
-                                    'title':result_title,
-                                    'subtitle':result_content,
-                                    'image_url':image_url,
-                                    'default_action':{
-                                        'type':'web_url',
-                                        'url':'http://ogiqvo.com/',
-                                        'messenger_extensions':False,
-                                        'webview_height_ratio':'tall',
-                                        'fallback_url':'http://ogiqvo.com/'
+                                    {
+                                        'title':result_title,
+                                        'subtitle':result_content,
+                                        'image_url':image_url,
+                                        'default_action':{
+                                            'type':'web_url',
+                                            'url':'http://ogiqvo.com/',
+                                            'messenger_extensions':False,
+                                            'webview_height_ratio':'tall',
+                                            'fallback_url':'http://ogiqvo.com/'
+                                        }
                                     }
                                 ],
                                 'buttons':[]

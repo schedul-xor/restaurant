@@ -469,7 +469,17 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                                         }
                                     }
                                 ],
-                                'buttons':[]
+                                'buttons':[
+                                    {
+                                        "type":"web_url",
+                                        "url":"http://ogiqvo.com/",
+                                        "title":"View Website"
+                                    },{
+                                        "type":"postback",
+                                        "title":"Start Chatting",
+                                        "payload":"DEVELOPER_DEFINED_PAYLOAD"
+                                    }
+                                ]
                             }
                         }
                     }

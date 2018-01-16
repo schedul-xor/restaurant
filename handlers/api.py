@@ -551,9 +551,13 @@ class LogDumpHandler(BaseHandler):
                 for timestamp,user_id,platform,searched_category_id,result_shop_id in cur.fetchall():
                     self.write(str(timestamp)+','+str(user_id)+','+str(platform)+','+str(searched_category_id)+','+str(result_shop_id)+"\n")
                 
-                pass
             elif req_type == 'jump':
-                pass
+                self.set_header('Content-Type','text/csv')
+                self.set_header('Content-disposition','attachment;filename=jumps.csv')
+        
+                self.write('utc_timestamp,user_id,shown_key'+"\n")
+
+                # TODO
             else:
                 self.write('No type '+req_type+' was found')
         finally:

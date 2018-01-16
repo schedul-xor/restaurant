@@ -18,6 +18,15 @@ import logging
 logger = logging.getLogger('boilerplate.' + __name__)
 
 
+def insert_log(pgcon,user_id,platform,category_id,shop_id):
+    cur = pgcon.cursor()
+    cur.execute("""
+    INSERT INTO callbacks
+    (timestamp,user_id,platform,searched_category_id,result_shop_id)
+    VALUES
+    (NOW(),%s,%s,%s,%s)
+    """,(user_id,platform,category_id,shop_id))
+
 class BaseHandler(tornado.web.RequestHandler):
     """A class to collect common handler methods - all other handlers should
     subclass this one.
@@ -446,13 +455,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             datastr = json.dumps(data)
             params = {'access_token':self.application.messenger_page_access_token}
 
-            cur = self.application.pgcon.cursor()
-            cur.execute("""
-            INSERT INTO callbacks
-            (timestamp,user_id,platform,searched_category_id,result_shop_id)
-            VALUES
-            (NOW(),%s,%s,%s,%s)
-            """,(user_id,'messenger',0,shop_id))
+            insert_log(self.application.pgcon,user_id,'messenger',0,shop_id)
             self.application.pgcon.commit()
             
             r = requests.post(url,params=params,data=datastr,headers=headers)

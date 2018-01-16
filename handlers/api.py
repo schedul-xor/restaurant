@@ -539,6 +539,9 @@ class LogDumpHandler(BaseHandler):
     def post(self,req_type):
         try:
             if req_type == 'callback':
+                self.set_header('Content-Type','text/csv')
+                self.set_header('Content-disposition','attachment;filename=callbacks.csv')
+        
                 self.write('utc_timestamp,user_id,platform,searched_category_id,shown_key'+"\n")
                 cur = self.application.pgcon.cursor()
                 cur.execute("""

@@ -437,16 +437,29 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                         }
                     }
                 }
+                shop_id = h['id']
+            else:
+                shop_id = ''
 
             url = 'https://graph.facebook.com/v2.6/me/messages'
             headers = {'content-type':'application/json'}
             datastr = json.dumps(data)
             params = {'access_token':self.application.messenger_page_access_token}
+
+            cur = self.application.pgcon.cursor()
+            cur.execute("""
+            INSERT INTO callbacks
+            (timestamp,user_id,platform,searched_category_id,result_shop_id)
+            VALUES
+            (NOW(),%s,%s,%s,%s)
+            """,(user_id,'messenger',0,shop_id))
+            self.application.pgcon.commit()
             
             r = requests.post(url,params=params,data=datastr,headers=headers)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
+            self.application.pgcon.rollback()
         finally:
             self.finish()
 

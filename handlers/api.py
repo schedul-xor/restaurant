@@ -437,7 +437,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                         }
                     }
                 }
-                shop_id = h['id']
+                shop_id = h['key']
             else:
                 shop_id = ''
 

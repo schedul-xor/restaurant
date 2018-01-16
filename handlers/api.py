@@ -314,6 +314,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     preview_image_url=img_url
                 ))
 
+            if category_id == None: category_id = 0
             if h != None:
                 image_url = self.application.self_url+'/image/'+h['key']
                 logger.info('Image URL: '+image_url)
@@ -325,6 +326,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     uri=url
                 )]
                 
+                insert_log(self.application.pgcon,user_id,'line',category_id,shop_id)
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],
                     template=ButtonsTemplate(
@@ -336,13 +338,17 @@ class LineWebhookHandler(ShopSelectableHandler):
                 ))
                     
             else:
+                insert_log(self.application.pgcon,user_id,'line',category_id,'')
                 reply = 'Nothing found'
                 self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
+                
+            self.application.pgcon.commit()
 
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
             logger.error(e.error.details)
+            self.application.pgcon.rollback()
 
     @tornado.web.asynchronous
     @tornado.gen.coroutine

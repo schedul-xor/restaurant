@@ -285,14 +285,9 @@ class LineWebhookHandler(ShopSelectableHandler):
             h = None
             if event.type == 'follow':
                 img_url = self.application.self_url+'/static/img/location.png'
-                self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
-                    alt_text='ボタンを連打してみてください！',
-                    template=ButtonsTemplate(
-                        thumbnail_image_url=img_url,
-                        title='説明',
-                        text='ボタンを連打してみてください！',
-                        actions=[]
-                    )
+                self.application.line_bot_api.reply_message(event.reply_token,ImageSendMessage(
+                    original_content_url=img_url,
+                    preview_image_url=img_url
                 ))
                 return
             

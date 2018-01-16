@@ -539,7 +539,7 @@ class LogDumpHandler(BaseHandler):
     def post(self,req_type):
         try:
             if req_type == 'callback':
-                self.write('timestamp,user_id,platform,searched_category_id,shown_key'+"\n")
+                self.write('utc_timestamp,user_id,platform,searched_category_id,shown_key'+"\n")
                 cur = self.application.pgcon.cursor()
                 cur.execute("""
                 SELECT timestamp,user_id,platform,searched_category_id,result_shop_id

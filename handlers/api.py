@@ -461,7 +461,32 @@ class LogDBInitHandler(BaseHandler):
     @tornado.web.asynchronous
     def post(self):
         try:
+            cur = self.application.pgcon.cursor()
+            cur.execute("""
+            CREATE TABLE callbacks
+            (id BIGSERIAL PRIMARY KEY,
+            timestamp TIMESTAMP NOT NULL,
+            user_id TEXT NOT NULL,
+            platform VARCHAR(16) NOT NULL,
+            searched_category_id INTEGER NOT NULL,
+            result_shop_id VARCHAR(16) NOT NULL
+            )
+            """)
+            cur.execute("""
+            CREATE TABLE jumps
+            (id BIGSERIAL PRIMARY KEY,
+            timestamp TIMESTAMP NOT NULL,
+            user_id TEXT NOT NULL,
+            result_shop_id VARCHAR(16) NOT NULL
+            )
+            """)
+            self.application.pgcon.commit()
+            
             self.write('Initialization done.')
+        except Exception as e:
+            import traceback
+            self.application.pgcon.rollback()
+            logger.error(traceback.format_exc())
         finally:
             self.finish()
 
@@ -506,7 +531,17 @@ class LogDeleteHandler(BaseHandler):
     @tornado.web.asynchronous
     def post(self):
         try:
+            cur = self.application.pgcon.cursor()
+
+            cur.execute("TRUNCATE TABLE callbacks")
+            cur.execute("TRUNCATE TABLE jumps")
+             
+            self.application.pgcon.commit()
             self.write('Deleted')
+        except Exception as e:
+            import traceback
+            self.application.pgcon.rollback()
+            logger.error(traceback.format_exc())
         finally:
             self.finish()
 

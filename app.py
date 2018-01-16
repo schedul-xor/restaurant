@@ -6,6 +6,7 @@ import tornado.web
 from tornado.options import options
 import redis
 import urlparse
+import psycopg2
 
 from settings import settings
 from urls import url_patterns
@@ -16,7 +17,9 @@ logger = logging.getLogger('boilerplate.' + __name__)
 
 class TornadoBoilerplate(tornado.web.Application):
     def __init__(self):
-        self.redisdb = self.create_client()
+        self.redisdb = self.create_redis_client()
+        
+        self.pgcon = self.create_pg_client()
         
         self.line_bot_api = LineBotApi(options.line_channel_access_token)
         self.line_handler = WebhookHandler(options.line_channel_secret)
@@ -30,13 +33,26 @@ class TornadoBoilerplate(tornado.web.Application):
         # Initialize application
         tornado.web.Application.__init__(self, url_patterns, **settings)
 
-    def create_client(self):
+    def create_redis_client(self):
         o = urlparse.urlparse(options.redis_url)
         return redis.StrictRedis(
             host=o.hostname,
             port=o.port,
             password=o.password,
             db=0
+        )
+
+    def create_pg_client(self):
+        o = urlparse.urlparse(options.database_url)
+        username = o.username
+        password = o.password
+        database = o.path[1:]
+        hostname = o.hostname
+        return psycopg2.connect(
+            database = database,
+            user = username,
+            password = password,
+            host = hostname
         )
 
 def main():

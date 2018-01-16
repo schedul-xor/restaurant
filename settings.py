@@ -21,6 +21,7 @@ define("messenger_verify_token",'')
 define("messenger_page_access_token",'')
 define('redis_url','redis://127.0.0.1:6379')
 define('redis_subscribe_channel','linelocation_channel')
+define('database_url','postgres://patentecho_user:patentecho_password@localhost:5432/patentecho')
 define("self_url",'http://localhost:8888/')
 tornado.options.parse_command_line()
 

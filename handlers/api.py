@@ -449,3 +449,64 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             logger.error(traceback.format_exc())
         finally:
             self.finish()
+
+class LogDBInitHandler(BaseHandler):
+    def get(self):
+        self.write('''<body>
+<form action="/log/dbinit" method="POST">
+<input type="submit" value="Initialize"/>
+</form>
+</body>''')
+
+    @tornado.web.asynchronous
+    def post(self):
+        try:
+            self.write('Initialization done.')
+        finally:
+            self.finish()
+
+class LogHandler(BaseHandler):
+    def get(self):
+        self.write('''<body>
+<h1>Log admin</h1>
+<form action="/log/dump_callback" method="POST">
+<input type="submit" value="Export callback log"/>
+</form>
+<form action="/log/dump_jump" method="POST">
+<input type="submit" value="Export jump log"/>
+</form>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
+<form action="/log/delete" method="POST" style="background-color:#f99;color:#fff;">
+<p>DANGER ZONE</p>
+<input type="submit" value="DELETE ALL LOGS" style="background-color:#f00;color:#fff;"/>
+</form>
+</body>''')
+
+    @tornado.web.asynchronous
+    def delete(self):
+        try:
+            self.write('Done.')
+        finally:
+            self.finish()
+
+class LogDumpHandler(BaseHandler):
+    @tornado.web.asynchronous
+    def post(self,req_type):
+        try:
+            self.write(req_type)
+        finally:
+            self.finish()
+
+class LogDeleteHandler(BaseHandler):
+    @tornado.web.asynchronous
+    def post(self):
+        try:
+            self.write('Deleted')
+        finally:
+            self.finish()
+

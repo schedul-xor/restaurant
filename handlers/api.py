@@ -285,10 +285,7 @@ class LineWebhookHandler(ShopSelectableHandler):
             h = None
             if event.type == 'follow':
                 img_url = self.application.self_url+'/static/img/location.png'
-                self.application.line_bot_api.reply_message(event.reply_token,ImageSendMessage(
-                    original_content_url=img_url,
-                    preview_image_url=img_url
-                ))
+                self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text='下のOne touch screenを連打してみましょう！'))
                 return
             
             elif event.type == 'unfollow':

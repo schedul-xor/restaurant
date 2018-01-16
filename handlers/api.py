@@ -56,7 +56,6 @@ class ShopSelectableHandler(BaseHandler):
             target_key = 'pos'
         else:
             target_key = 'pos'+str(category_id)
-        logger.info(target_key+' '+str(DISTANCE_OFFSET)+' lon'+str(longitude)+'/lat'+str(latitude))
         keyanddists = []
         try:
             keyanddists = self.application.redisdb.georadius(target_key,longitude,latitude,DISTANCE_OFFSET[0],unit=DISTANCE_OFFSET[1],withdist=True)
@@ -308,7 +307,7 @@ class LineWebhookHandler(ShopSelectableHandler):
 
             if h != None:
                 image_url = self.application.self_url+'/image/'+h['key']
-                logger.info('Use image '+image_url+' for '+str(h['key'])+' '+str(h))
+                logger.info('Image URL: '+image_url)
                 url = 'http://ogiqvo.com/'
                 reply = h['explicit_category_name']
                     
@@ -343,7 +342,6 @@ class LineWebhookHandler(ShopSelectableHandler):
         
         signature = self.request.headers['X-Line-Signature']
         body = self.request.body.decode('UTF-8')
-        logger.info('body='+body+', '+signature)
 
         try:
             self.application.line_handler.handle(body, signature)
@@ -384,7 +382,6 @@ class MessengerWebhookHandler(ShopSelectableHandler):
 
     @tornado.web.asynchronous
     def post(self):
-        logger.info('Received data '+self.request.body)
         data = json.loads(self.request.body)
 
         try:
@@ -415,7 +412,6 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                 result_str = result_str[:2000] # 2000 is the limit of words
                 
                 image_url = self.application.self_url+'/image/'+h['key']
-                logger.info('Use image '+image_url+' for '+str(h['key'])+' '+str(h))
                 
                 data = {
                     'recipient':{'id':user_id},
@@ -446,10 +442,8 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             headers = {'content-type':'application/json'}
             datastr = json.dumps(data)
             params = {'access_token':self.application.messenger_page_access_token}
-            logger.info('Request '+url+' '+datastr+' '+json.dumps(params))
             
             r = requests.post(url,params=params,data=datastr,headers=headers)
-            logger.info('Reply '+r.text)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())

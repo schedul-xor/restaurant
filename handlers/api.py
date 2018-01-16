@@ -17,8 +17,6 @@ import logging
 
 logger = logging.getLogger('boilerplate.' + __name__)
 
-RECOMMEND_REGISTERING_LOCATION = u'位置情報を設定されることで、位置情報にもとづいた御提案をいたします'
-
 
 class BaseHandler(tornado.web.RequestHandler):
     """A class to collect common handler methods - all other handlers should
@@ -276,19 +274,16 @@ class LineWebhookHandler(ShopSelectableHandler):
             timestamp = event.timestamp
             user_id = event.source.sender_id
             category_id = None
-            latitude = None
-            longitude = None
-            is_based_on_geo = False
             h = None
             if event.type == 'follow':
                 img_url = self.application.self_url+'/static/img/location.png'
-                actions = [MessageTemplateAction(label='位置情報を設定してください',text=RECOMMEND_REGISTERING_LOCATION.encode('UTF-8'))]
+                actions = [MessageTemplateAction(label='ボタンを連打してみてください！',text='ボタンを連打してみてください！')]
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
-                    alt_text='位置情報を設定してください',
+                    alt_text='ボタンを連打してみてください！',
                     template=ButtonsTemplate(
                         thumbnail_image_url=img_url,
                         title='説明',
-                        text=RECOMMEND_REGISTERING_LOCATION,
+                        text='ボタンを連打してみてください！',
                         actions=actions
                     )
                 ))
@@ -297,21 +292,13 @@ class LineWebhookHandler(ShopSelectableHandler):
             elif event.type == 'unfollow':
                 self.application.redisdb.delete('LOC_'+str(event.source.user_id))
                 return
-            elif event.message.type == 'location':
-                reply = 'location messages are only available, given '+event.message.type
-                latitude = event.message.latitude
-                longitude = event.message.longitude
-                self.register_user_location(user_id,latitude,longitude)
 
             elif event.message.type == 'text' and len(event.message.text) >= len('one touch search') and event.message.text[:len('one touch search')] == 'one touch search':
                 if len(event.message.text) > len('one touch search'):
                     category_id = event.message.text[len('one touch search'):]
                     
-                (latitude,longitude) = self.select_user_location(user_id)
-                if latitude == None and longitude == None:
-                    h = self.select_random_shop_from_redis(user_id,category_id,timestamp)
-                    is_based_on_geo = False
-
+                h = self.select_random_shop_from_redis(user_id,category_id,timestamp)
+                
             elif event.message.type == 'text' and len(event.message.text) >= len(RECOMMEND_REGISTERING_LOCATION) and event.message.text[:len(RECOMMEND_REGISTERING_LOCATION)] == RECOMMEND_REGISTERING_LOCATION:
                 img_url = self.application.self_url+'/static/img/location.png'
                 self.application.line_bot_api.reply_message(event.reply_token,ImageSendMessage(
@@ -319,34 +306,16 @@ class LineWebhookHandler(ShopSelectableHandler):
                     preview_image_url=img_url
                 ))
 
-            if h == None:
-                h = self.select_near_shop_from_redis(user_id,latitude,longitude,category_id,timestamp)
-                is_based_on_geo = True
-
             if h != None:
                 image_url = self.application.self_url+'/image/'+h['key']
                 logger.info('Use image '+image_url+' for '+str(h['key'])+' '+str(h))
-                map_url = 'http://maps.google.com/maps?z=15&t=m&q=loc:'+str(h['latitude'])+'+'+str(h['longitude'])
-                logger.info('Map url: '+map_url)
-                reply = ''
-                for k in ['building_name','floor_name','budget','explicit_category_name']:
-                    if h[k] != '' and h[k] != None:
-                        if reply != '':
-                            reply = reply+' '
-                        reply = reply+h[k]
-                    else:
-                        logger.info('No '+k+'='+str(h[k]))
-                if h['dist'] != None:
-                    reply = reply+' ここから'
-                    reply = reply+str(int(float(h['dist'])*10.0)/float(10.0))
-                    reply = reply+'km、'
+                url = 'http://ogiqvo.com/'
+                reply = h['explicit_category_name']
                     
                 actions = [URITemplateAction(
-                    label=u'地図を見る',
-                    uri=map_url
+                    label=u'詳細を見る',
+                    uri=url
                 )]
-                if not is_based_on_geo:
-                    actions.append(MessageTemplateAction(label='位置情報を設定してください',text=RECOMMEND_REGISTERING_LOCATION.encode('UTF-8')))
                 
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],
@@ -359,7 +328,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                 ))
                     
             else:
-                reply = 'No shops found'
+                reply = 'Nothing found'
                 self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
 
         except Exception as e:

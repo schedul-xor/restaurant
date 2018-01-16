@@ -534,19 +534,27 @@ class LogHandler(BaseHandler):
 </form>
 </body>''')
 
-    @tornado.web.asynchronous
-    def delete(self):
-        try:
-            self.write('Done.')
-        finally:
-            self.finish()
-
 class LogDumpHandler(BaseHandler):
     @tornado.web.asynchronous
     def post(self,req_type):
         try:
-            self.write(req_type)
+            if req_type == 'callback':
+                self.write('timestamp,user_id,platform,searched_category_id,shown_key'+"\n")
+                cur = self.application.pgcon.cursor()
+                cur.execute("""
+                SELECT timestamp,user_id,platform,searched_category_id,result_shop_id
+                FROM callbacks
+                """)
+                for timestamp,user_id,platform,searched_category_id,result_shop_id in cur.fetchall():
+                    self.write(str(timestamp)+','+str(user_id)+','+str(platform)+','+str(searched_category_id)+','+str(result_shop_id)+"\n")
+                
+                pass
+            elif req_type == 'jump':
+                pass
+            else:
+                self.write('No type '+req_type+' was found')
         finally:
+            self.application.pgcon.rollback()
             self.finish()
 
 class LogDeleteHandler(BaseHandler):

@@ -65,9 +65,9 @@ public class main {
 
                     String title = null;
                     try {
-                        Cell c0 = r.getCell(0);
+                        Cell c0 = r.getCell(3);
                         if (c0.getCellTypeEnum() != CellType.STRING) {
-                            log.warn("  l67 not {}", c0.getCellTypeEnum());
+                            log.warn("  l67 should be string not {}", c0.getCellTypeEnum());
                             continue;
                         }
 
@@ -79,11 +79,11 @@ public class main {
                     // Used as content
                     String explicitCategoryName = "";
                     try {
-                        Cell c0 = r.getCell(1);
+                        Cell c0 = r.getCell(4);
                         if (c0 == null || c0.getCellTypeEnum() == CellType.BLANK) {
                             explicitCategoryName = "";
                         } else if (c0.getCellTypeEnum() != CellType.STRING) {
-                            log.warn("  l81 not {}", c0.getCellTypeEnum());
+                            log.warn("  l81 should be string not  {}", c0.getCellTypeEnum());
                             continue;
                         } else {
                             explicitCategoryName = c0.getStringCellValue().trim();
@@ -92,81 +92,44 @@ public class main {
                         log.error("   {} {}", li, e);
                     }
 
-                    String budget = null;
-//                    try {
-//                        Cell c0 = r.getCell(7);
-//                        if (c0 == null || c0.getCellTypeEnum() == CellType.BLANK) {
-//                            budget = "";
-//                        } else if (c0.getCellTypeEnum() != CellType.STRING) {
-//                            log.warn("  l95 not {}", c0.getCellTypeEnum());
-//                            continue;
-//                        } else {
-//                            budget = c0.getStringCellValue().trim();
-//                        }
-//                    } catch (Exception e) {
-//                        log.error("   {} {}", li, e);
-//                    }
+                    // Used as serial ID
+                    String serialId = "";
+                    try {
+                        Cell c0 = r.getCell(5);
+                        if (c0.getCellTypeEnum() != CellType.STRING) {
+                            log.warn("  l110 should be string not  {}", c0.getCellTypeEnum());
+                            continue;
+                        }
 
-                    // Used as charge
-                    String floorName = "";
-//                    try {
-//                        Cell c0 = r.getCell(5);
-//                        if (c0.getCellTypeEnum() != CellType.STRING) {
-//                            log.warn("  l110 not {}", c0.getCellTypeEnum());
-//                            continue;
-//                        }
-//
-//                        floorName = c0.getStringCellValue().trim();
-//                    } catch (Exception e) {
-//                        log.error("   {} {}", li, e);
-//                    }
+                        serialId = c0.getStringCellValue().trim();
+                    } catch (Exception e) {
+                        log.error("   {} {}", li, e);
+                    }
 
-                    // Nearest station
-                    String buildingName = null;
-//                    try {
-//                        Cell c0 = r.getCell(2);
-//                        if (c0.getCellTypeEnum() != CellType.STRING) {
-//                            log.warn("  l110 not {}", c0.getCellTypeEnum());
-//                            continue;
-//                        }
-//
-//                        buildingName = c0.getStringCellValue().trim();
-//                    } catch (Exception e) {
-//                        log.error("   {} {}", li, e);
-//                    }
+                    // URL
+                    String url = "";
+                    try {
+                        Cell c0 = r.getCell(6);
+                        if (c0.getCellTypeEnum() != CellType.STRING) {
+                            log.warn("  l110 should be string not  {}", c0.getCellTypeEnum());
+                            continue;
+                        }
+
+                        url = c0.getStringCellValue().trim();
+                    } catch (Exception e) {
+                        log.error("   {} {}", li, e);
+                    }
 
                     double latitude = 0, longitude = 0;
-//                    try {
-//                        Cell c0 = r.getCell(3);
-//                        if (c0.getCellTypeEnum() != CellType.NUMERIC) {
-//                            log.warn("  l123 not {}", c0.getCellTypeEnum());
-//                            continue;
-//                        }
-//
-//                        latitude = c0.getNumericCellValue();
-//                    } catch (Exception e) {
-//                        log.error("   {} {}", li, e);
-//                    }
-//                    try {
-//                        Cell c0 = r.getCell(4);
-//                        if (c0.getCellTypeEnum() != CellType.NUMERIC) {
-//                            log.warn("  l134 not {}", c0.getCellTypeEnum());
-//                            continue;
-//                        }
-//
-//                        longitude = c0.getNumericCellValue();
-//                    } catch (Exception e) {
-//                        log.error("   {} {}", li, e);
-//                    }
 
                     FoundRow fr = new FoundRow();
                     fr.name = title;
                     fr.latitude = latitude;
                     fr.longitude = longitude;
-                    fr.buildingName = buildingName;
-                    fr.floorName = floorName;
+                    fr.buildingName = url;
+                    fr.floorName = serialId;
                     fr.explicitCategoryName = explicitCategoryName;
-                    fr.budget = budget;
+                    fr.budget = url;
                     fr.categories.add(1);
                     foundRows.put(posKey, fr);
                 }

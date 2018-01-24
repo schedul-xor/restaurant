@@ -76,11 +76,15 @@ class RedirectHandler(BaseHandler):
             
             h = self.application.redisdb.hgetall(key)
             if h == None:
-                raise tornado.web.HTTPError(400, 'Not found for key '+str(key))
+                msg = 'Not found for key '+str(key)
+                self.write(msg)
+                raise tornado.web.HTTPError(400, msg)
             
             url = h['budget']
             if not validators.url(url):
-                raise tornado.web.HTTPError(400,'URL ['+str(url)+'] is not valid for key '+str(key))
+                msg = 'URL ['+str(url)+'] is not valid for key '+str(key)
+                self.write(msg)
+                raise tornado.web.HTTPError(400,msg)
 
             self.redirect(url, status=302)
         finally:

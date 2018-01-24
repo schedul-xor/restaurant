@@ -95,7 +95,7 @@ public class main {
                     // Used as serial ID
                     String serialId = "";
                     try {
-                        Cell c0 = r.getCell(5);
+                        Cell c0 = r.getCell(1);
                         if (c0.getCellTypeEnum() != CellType.STRING) {
                             log.warn("  l110 should be string not  {}", c0.getCellTypeEnum());
                             continue;

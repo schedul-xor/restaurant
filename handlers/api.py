@@ -87,7 +87,9 @@ class RedirectHandler(BaseHandler):
                 raise tornado.web.HTTPError(400,msg)
 
             self.redirect(url, status=302)
+            
         finally:
+            self.application.pgcon.commit()
             self.finish()
 
 

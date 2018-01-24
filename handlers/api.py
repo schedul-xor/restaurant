@@ -317,7 +317,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     uri=url
                 )]
                 
-                insert_log(self.application.pgcon,user_id,'line',category_id,h['key'])
+                insert_log(self.application.pgcon,user_id,'line',category_id,h['floor_name'])
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],
                     template=ButtonsTemplate(

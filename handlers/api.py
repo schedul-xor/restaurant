@@ -72,7 +72,7 @@ class RedirectHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self,key,user_id):
         try:
-            insert_jump_log(self.application.pgcon,key,user_id)
+            insert_jump_log(self.application.pgcon,user_id,key)
             
             h = self.application.redisdb.hgetall(key)
             if h == None:

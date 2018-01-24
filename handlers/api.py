@@ -67,11 +67,10 @@ class RedirectHandler(BaseHandler):
             if h == None:
                 raise tornado.web.HTTPError(400, 'Not found for key '+str(key))
             
-#            url = h['budget']
-#            if not validators.url(url):
-#                raise tornado.web.HTTPError(400,'URL ['+str(url)+'] is not valid for key '+str(key))
+            url = h['budget']
+            if not validators.url(url):
+                raise tornado.web.HTTPError(400,'URL ['+str(url)+'] is not valid for key '+str(key))
 
-            url = 'http://www.ogiqvo.com/'
             self.redirect(url, status=302)
         finally:
             self.finish()

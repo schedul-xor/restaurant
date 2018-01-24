@@ -61,7 +61,7 @@ class IndexHandler(BaseHandler):
         
 class RedirectHandler(BaseHandler):
     @tornado.web.asynchronous
-    def get(self,key):
+    def get(self,key,user_id):
         try:
             h = self.application.redisdb.hgetall(key)
             if h == None:

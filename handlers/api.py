@@ -343,13 +343,14 @@ class LineWebhookHandler(ShopSelectableHandler):
             if category_id == None: category_id = 0
             if h != None:
                 image_url = self.application.self_url+'/image/'+h['key']
+                redirect_url = self.application.self_url+'/redirect/'+h['key']+'/'+str(user_id)+'?'+str(random.random())
+                
                 logger.info('Image URL: '+image_url)
-                url = 'http://ogiqvo.com/'
                 reply = h['explicit_category_name']
                     
                 actions = [URITemplateAction(
                     label=u'詳細を見る',
-                    uri=url
+                    uri=redirect_url
                 )]
                 
                 insert_callback_log(self.application.pgcon,user_id,'line',category_id,h['floor_name'])
@@ -453,6 +454,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                 result_str = result_str[:2000] # 2000 is the limit of words
                 
                 image_url = self.application.self_url+'/image/'+h['key']
+                redirect_url = self.application.self_url+'/redirect/'+h['key']+'/'+str(user_id)+'?'+str(random.random())
                 
                 data = {
                     'recipient':{'id':user_id},
@@ -468,7 +470,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                                         'image_url':image_url,
                                         'default_action':{
                                             'type':'web_url',
-                                            'url':'http://ogiqvo.com/',
+                                            'url':redirect_url,
                                             'messenger_extensions':False,
                                             'webview_height_ratio':'tall'
                                         }

@@ -443,7 +443,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                         }
                     }
                 }
-                shop_id = h['key']
+                shop_id = h['floor_name']
             else:
                 shop_id = ''
 

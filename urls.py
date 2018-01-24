@@ -10,6 +10,7 @@ url_patterns = [
     (r'/image/([\.\d]+)(/\d+)?$',handlers.api.ImageHandler),
     (r'/dbrefresh$',handlers.api.DBRefreshHandler),
     (r'/dbrefresh2$',handlers.api.DBRefresh2Handler),
+    (r'/redirect/(.+)$',handlers.api.RedirectHandler),
     (r'/log/dbinit$',handlers.api.LogDBInitHandler),
     (r'/log$',handlers.api.LogHandler),
     (r'/log/dump_(callback|jump)$',handlers.api.LogDumpHandler),

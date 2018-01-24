@@ -13,6 +13,7 @@ import random
 import requests
 import base64
 from PIL import Image
+import validators
 import logging
 
 logger = logging.getLogger('boilerplate.' + __name__)
@@ -56,6 +57,21 @@ class IndexHandler(BaseHandler):
 <li><a href="/line/qrcode">/line/qrcode</a></li>
 </ul>''')
         self.finish()
+
+        
+class RedirectHandler(BaseHandler):
+    @tornado.web.asynchronous
+    def get(self,key):
+        try:
+            h = self.application.redisdb.hgetall(key)
+            if h == None:
+                raise tornado.web.HTTPError(400, msg)
+            url = h['budget']
+            if not validators.url(url):
+                raise tornado.web.HTTPError(400,'URL ['+str(url)+'] is not valid for key '+str(key))
+            self.redirect(url, status=302)
+        finally:
+            self.finish()
 
 
 class ShopSelectableHandler(BaseHandler):

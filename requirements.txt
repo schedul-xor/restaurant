@@ -5,3 +5,4 @@ redis>='2.10.6'
 requests
 pillow
 psycopg2
+validators

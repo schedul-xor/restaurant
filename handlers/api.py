@@ -582,8 +582,14 @@ class LogDumpHandler(BaseHandler):
                 self.set_header('Content-disposition','attachment;filename=jumps.csv')
         
                 self.write('utc_timestamp,user_id,shown_key'+"\n")
+                cur = self.application.pgcon.cursor()
+                cur.execute("""
+                SELECT timestamp,user_id,result_shop_id
+                FROM jumps
+                """)
+                for timestamp,user_id,result_shop_id in cur.fetchall():
+                    self.write(str(timestamp)+','+str(user_id)+','+str(result_shop_id)+"\n")
 
-                # TODO
             else:
                 self.write('No type '+req_type+' was found')
         finally:

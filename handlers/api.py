@@ -19,7 +19,7 @@ import logging
 logger = logging.getLogger('boilerplate.' + __name__)
 
 
-def insert_log(pgcon,user_id,platform,category_id,shop_id):
+def insert_callback_log(pgcon,user_id,platform,category_id,shop_id):
     cur = pgcon.cursor()
     cur.execute("""
     INSERT INTO callbacks
@@ -27,6 +27,15 @@ def insert_log(pgcon,user_id,platform,category_id,shop_id):
     VALUES
     (NOW(),%s,%s,%s,%s)
     """,(user_id,platform,category_id,shop_id))
+
+def insert_jump_log(pgcon,user_id,shop_id):
+    cur = pgcon.cursor()
+    cur.execute("""
+    INSERT INTO jumps
+    (timestamp,user_id,result_shop_id)
+    VALUES
+    (NOW(),%s,%s)
+    """,(user_id,shop_id))
 
 class BaseHandler(tornado.web.RequestHandler):
     """A class to collect common handler methods - all other handlers should
@@ -63,6 +72,8 @@ class RedirectHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self,key,user_id):
         try:
+            insert_jump_log(self.application.pgcon,key,user_id)
+            
             h = self.application.redisdb.hgetall(key)
             if h == None:
                 raise tornado.web.HTTPError(400, 'Not found for key '+str(key))
@@ -335,7 +346,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     uri=url
                 )]
                 
-                insert_log(self.application.pgcon,user_id,'line',category_id,h['floor_name'])
+                insert_callback_log(self.application.pgcon,user_id,'line',category_id,h['floor_name'])
                 self.application.line_bot_api.reply_message(event.reply_token,TemplateSendMessage(
                     alt_text=h['name'],
                     template=ButtonsTemplate(
@@ -347,7 +358,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                 ))
                     
             else:
-                insert_log(self.application.pgcon,user_id,'line',category_id,'')
+                insert_callback_log(self.application.pgcon,user_id,'line',category_id,'')
                 reply = 'Nothing found'
                 self.application.line_bot_api.reply_message(event.reply_token,TextSendMessage(text=reply))
                 
@@ -470,7 +481,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             datastr = json.dumps(data)
             params = {'access_token':self.application.messenger_page_access_token}
 
-            insert_log(self.application.pgcon,user_id,'messenger',0,shop_id)
+            insert_callback_log(self.application.pgcon,user_id,'messenger',0,shop_id)
             self.application.pgcon.commit()
             
             r = requests.post(url,params=params,data=datastr,headers=headers)

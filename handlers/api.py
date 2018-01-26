@@ -487,6 +487,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             url = 'https://graph.facebook.com/v2.6/me/messages'
             headers = {'content-type':'application/json'}
             datastr = json.dumps(data)
+            print datastr
             params = {'access_token':self.application.messenger_page_access_token}
 
             insert_callback_log(self.application.pgcon,user_id,'messenger',0,shop_id)

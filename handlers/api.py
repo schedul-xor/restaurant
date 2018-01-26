@@ -493,7 +493,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             self.application.pgcon.commit()
 
             r = requests.post(url,params=params,data=datastr,headers=headers)
-            print r.text
+            print datastr,r.text
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())

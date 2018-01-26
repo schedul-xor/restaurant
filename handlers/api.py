@@ -445,7 +445,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             else:
                 (lat,lon) = self.select_user_location(user_id)
 
-            data = {'recipient':{'id':user_id},'message':{'text':'Nothing found.'}}
+            data = {'recipient':{'id':str(user_id)},'message':{'text':'Nothing found.'}}
             h = self.select_random_shop_from_redis(user_id,None,0)
             if h != None:
                 result_title = h['name']
@@ -457,7 +457,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
                 redirect_url = self.application.self_url+'/redirect/'+h['key']+'/'+str(user_id)+'?'+str(random.random())
                 
                 data = {
-                    'recipient':{'id':user_id},
+                    'recipient':{'id':str(user_id)},
                     'message':{
                         'attachment':{
                             'type':'template',

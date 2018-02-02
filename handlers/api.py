@@ -61,9 +61,9 @@ class IndexHandler(BaseHandler):
     @tornado.web.asynchronous
     def get(self):
         self.set_default_headers()
-        self.write('''<h2>Line</h2><img src="/line/qrcode"></img>
+        self.write('''<h2>Line</h2><img src="./line/qrcode"></img>
 <ul>
-<li><a href="/line/qrcode">/line/qrcode</a></li>
+<li><a href="./line/qrcode">./line/qrcode</a></li>
 </ul>''')
         self.finish()
 
@@ -175,8 +175,8 @@ class ImageHandler(BaseHandler):
 class DBRefreshHandler(BaseHandler):
     def get(self):
         self.write('''<body>
-<p>Use <a href="/dbrefresh2">/dbrefresh2</a> for version 2</p>
-<form enctype="multipart/form-data" action="/dbrefresh" method="POST">
+<p>Use <a href="./dbrefresh2">/dbrefresh2</a> for version 2</p>
+<form enctype="multipart/form-data" action="./dbrefresh" method="POST">
 <input type="file" name="filearg"/>
 <input type="submit" value="Submit"/>
 </form>
@@ -210,7 +210,7 @@ class DBRefreshHandler(BaseHandler):
 class DBRefresh2Handler(BaseHandler):
     def get(self):
         self.write('''<body>
-<form enctype="multipart/form-data" action="/dbrefresh2" method="POST">
+<form enctype="multipart/form-data" action="./dbrefresh2" method="POST">
 <input type="file" name="filearg"/>
 <input type="submit" value="Submit"/>
 </form>
@@ -504,7 +504,7 @@ class MessengerWebhookHandler(ShopSelectableHandler):
 class LogDBInitHandler(BaseHandler):
     def get(self):
         self.write('''<body>
-<form action="/log/dbinit" method="POST">
+<form action="./log/dbinit" method="POST">
 <input type="submit" value="Initialize"/>
 </form>
 </body>''')
@@ -545,10 +545,10 @@ class LogHandler(BaseHandler):
     def get(self):
         self.write('''<body>
 <h1>Log admin</h1>
-<form action="/log/dump_callback" method="POST">
+<form action="./log/dump_callback" method="POST">
 <input type="submit" value="Export callback log"/>
 </form>
-<form action="/log/dump_jump" method="POST">
+<form action="./log/dump_jump" method="POST">
 <input type="submit" value="Export jump log"/>
 </form>
 <br/>
@@ -557,7 +557,7 @@ class LogHandler(BaseHandler):
 <br/>
 <br/>
 <br/>
-<form action="/log/delete" method="POST" style="background-color:#f99;color:#fff;">
+<form action="./log/delete" method="POST" style="background-color:#f99;color:#fff;">
 <p>DANGER ZONE</p>
 <input type="submit" value="DELETE ALL LOGS" style="background-color:#f00;color:#fff;"/>
 </form>

@@ -333,12 +333,12 @@ class LineWebhookHandler(ShopSelectableHandler):
                     
                 h = self.select_random_shop_from_redis(user_id,category_id,timestamp)
                 
-            elif event.message.type == 'text' and len(event.message.text) >= len(RECOMMEND_REGISTERING_LOCATION) and event.message.text[:len(RECOMMEND_REGISTERING_LOCATION)] == RECOMMEND_REGISTERING_LOCATION:
-                img_url = self.application.self_url+'/static/img/location.png'
-                self.application.line_bot_api.reply_message(event.reply_token,ImageSendMessage(
-                    original_content_url=img_url,
-                    preview_image_url=img_url
-                ))
+            # elif event.message.type == 'text' and len(event.message.text) >= len(RECOMMEND_REGISTERING_LOCATION) and event.message.text[:len(RECOMMEND_REGISTERING_LOCATION)] == RECOMMEND_REGISTERING_LOCATION:
+            #     img_url = self.application.self_url+'/static/img/location.png'
+            #     self.application.line_bot_api.reply_message(event.reply_token,ImageSendMessage(
+            #         original_content_url=img_url,
+            #         preview_image_url=img_url
+            #     ))
 
             if category_id == None: category_id = 0
             if h != None:

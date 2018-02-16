@@ -432,18 +432,19 @@ class MessengerWebhookHandler(ShopSelectableHandler):
             user_id = m0['sender']['id']
             message = m0['message']
             mid = message['mid']
-            attachments = message['attachments']
-            attachment0 = attachments[0]
-
             lat = None
             lon = None
-            if attachment0['type'] == 'location':
-                coord = attachment0['payload']['coordinates']
-                lat = coord['lat']
-                lon = coord['long']
-                self.register_user_location(user_id,lat,lon)
-            else:
-                (lat,lon) = self.select_user_location(user_id)
+            if message.has_key('attachments'):
+                attachments = message['attachments']
+                attachment0 = attachments[0]
+
+                if attachment0['type'] == 'location':
+                    coord = attachment0['payload']['coordinates']
+                    lat = coord['lat']
+                    lon = coord['long']
+                    self.register_user_location(user_id,lat,lon)
+                else:
+                    (lat,lon) = self.select_user_location(user_id)
 
             data = {'recipient':{'id':str(user_id)},'message':{'text':'Nothing found.'}}
             h = self.select_random_shop_from_redis(user_id,None,0)

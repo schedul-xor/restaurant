@@ -79,10 +79,10 @@ class ShopSelectableHandler(BaseHandler):
 
     def select_random_shop_from_redis(self,user_id,category_id,timestamp,callback=None):
         try:
-             if category_id == None:
-                 keys = self.application.redisdb.srandmember('ALL_KEYS',1)
-             else:
-                 keys = self.application.redisdb.srandmember('ALL_CATEGORY'+str(category_id)+'_KEYS',1)
+            if category_id == None:
+                keys = self.application.redisdb.srandmember('ALL_KEYS',1)
+            else:
+                keys = self.application.redisdb.srandmember('ALL_CATEGORY'+str(category_id)+'_KEYS',1)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())

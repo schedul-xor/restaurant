@@ -75,7 +75,8 @@ class ShopSelectableHandler(BaseHandler):
             h['key'] = key
             h['dist'] = dist
             return h
-        else: return None
+        else:
+            return self.select_random_shop_from_redis(user_id,category_id,timestamp,callback)
 
     def select_random_shop_from_redis(self,user_id,category_id,timestamp,callback=None):
         try:

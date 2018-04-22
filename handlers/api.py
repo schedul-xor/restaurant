@@ -53,14 +53,15 @@ class IndexHandler(BaseHandler):
 
 class ShopSelectableHandler(BaseHandler):
     def select_near_shop_from_redis(self,user_id,latitude,longitude,category_id,timestamp,callback=None):
-        DISTANCE_OFFSET = (3000.0,'km')
+        DISTANCE_OFFSET = (10.0,'km')
         if category_id == None:
             target_key = 'pos'
         else:
             target_key = 'pos'+str(category_id)
         logger.info(target_key+' '+str(DISTANCE_OFFSET))
+        keyanddists = []
         try:
-            keyanddists = self.application.redisdb.execute_command('GEORADIUS',target_key,longitude,latitude,DISTANCE_OFFSET[0],DISTANCE_OFFSET[1],'WITHDIST')
+            keyanddists = self.application.redisdb.georadius(target_key,longitude,latitude,DISTANCE_OFFSET[0],unit=DISTANCE_OFFSET[1],withdist=True)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
@@ -78,7 +79,10 @@ class ShopSelectableHandler(BaseHandler):
 
     def select_random_shop_from_redis(self,user_id,category_id,timestamp,callback=None):
         try:
-            keys = self.application.redisdb.srandmember('ALL_CATEGORY'+str(category_id)+'_KEYS',1)
+             if category_id == None:
+                 keys = self.application.redisdb.srandmember('ALL_KEYS',1)
+             else:
+                 keys = self.application.redisdb.srandmember('ALL_CATEGORY'+str(category_id)+'_KEYS',1)
         except Exception as e:
             import traceback
             logger.error(traceback.format_exc())
@@ -100,7 +104,7 @@ class ShopSelectableHandler(BaseHandler):
 
     def select_user_location(self,user_id):
         h = self.application.redisdb.hgetall('LOC_'+user_id)
-        if h == None: return (None,None)
+        if h == None or not h.has_key('lat'): return (None,None)
         if not h.has_key('lat'): return (None,None)
         lat = float(h['lat'])
         lon = float(h['lon'])
@@ -176,7 +180,6 @@ class DBRefresh2Handler(BaseHandler):
         f = self.request.files['filearg'][0]
         j = json.loads(f['body'])
 
-        # self.application.redisdb.flushall()
         if self.application.redisdb.exists('ALL_KEYS'):
             prev_keys = self.application.redisdb.smembers('ALL_KEYS')
             for key in prev_keys:
@@ -350,7 +353,7 @@ class LineWebhookHandler(ShopSelectableHandler):
                     template=ButtonsTemplate(
                         thumbnail_image_url=image_url,
                         title=h['name'].decode('UTF-8')[:40], # Limit 40 chars
-                        text=reply,
+                        text=reply.decode('UTF-8')[:60], # Limit 60 chars
                         actions=actions
                     )
                 ))

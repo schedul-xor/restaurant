@@ -32,7 +32,7 @@ class TornadoBoilerplate(tornado.web.Application):
 
     def create_client(self):
         o = urlparse.urlparse(options.redis_url)
-        return redis.StrictRedis(
+        return redis.Redis(
             host=o.hostname,
             port=o.port,
             password=o.password,
